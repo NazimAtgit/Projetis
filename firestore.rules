@@ -1,0 +1,65 @@
+rules_version = '2';
+// Règles de sécurité Firestore pour Atelier Projets ESST.
+// Remplacez l'adresse ci-dessous par la vôtre (la même que adminEmails dans js/config.js).
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function email() { return request.auth.token.email.lower(); }
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function isAdmin() { return signedIn() && email() in ['encadrant@exemple.dz']; }
+    function me() { return get(/databases/$(db)/documents/users/$(email())).data; }
+    function isStudent() { return signedIn() && exists(/databases/$(db)/documents/users/$(email())); }
+    function member() { return isAdmin() || isStudent(); }
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // Réglages : lus par tous les inscrits, modifiés par l'encadrant.
+    match /settings/{id} {
+      allow read: if member();
+      allow write: if isAdmin();
+    }
+
+    // Projets : lecture pour tous les inscrits, écriture encadrant.
+    match /projects/{id} {
+      allow read: if member();
+      allow write: if isAdmin();
+    }
+
+    // Étudiants : un étudiant peut seulement faire avancer son propre tutoriel.
+    match /users/{uid} {
+      allow read: if member();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isStudent() && uid == email() && changed().hasOnly(['tutorial']));
+    }
+
+    // Tâches : l'étudiant ne touche qu'à ses tâches (ou prend une tâche libre de son projet),
+    // ne peut jamais les passer en « fait » ni s'attribuer des points.
+    match /tasks/{id} {
+      allow read: if member();
+      allow delete: if isAdmin();
+      allow create: if isAdmin()
+        || (isStudent()
+            && request.resource.data.kind == 'diagnostic'
+            && request.resource.data.assignee == email()
+            && request.resource.data.status == 'en_cours'
+            && request.resource.data.size == 'S'
+            && request.resource.data.projectId == me().projectId
+            && !('pointsAwarded' in request.resource.data));
+      allow update: if isAdmin()
+        || (isStudent()
+            && resource.data.projectId == me().projectId
+            && (resource.data.assignee == email() || resource.data.assignee == null)
+            && request.resource.data.assignee == email()
+            && resource.data.status != 'fait'
+            && request.resource.data.status in ['en_cours', 'a_valider', 'bloque']
+            && changed().hasOnly(['status', 'assignee', 'startedAt', 'submittedAt', 'proof', 'problem', 'feedback']));
+    }
+
+    // Historique : chacun ajoute ses propres événements, personne ne les modifie.
+    match /events/{id} {
+      allow read: if member();
+      allow create: if member() && request.resource.data.actor == email();
+      allow update, delete: if isAdmin();
+    }
+  }
+}
