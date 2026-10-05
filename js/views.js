@@ -8,7 +8,7 @@ import {
 } from "./logic.js";
 import { esc, avatar, fmtDate, ago, badgeSvg, brandMark } from "./ui.js";
 import { gantt, ganttLegend } from "./gantt.js";
-import { TUTORIAL_STEPS, TUTORIAL_QUIZ } from "./tutorial.js";
+import { TUTORIAL_STEPS, TUTORIAL_QUIZ, GUIDE_URL } from "./tutorial.js";
 
 const pill = (cls, label) => `<span class="pill ${cls}">${esc(label)}</span>`;
 const statusPill = s => pill(s, STATUS_LABEL[s] || s);
@@ -37,11 +37,13 @@ export function shell(route, content) {
       ${link("#/etudiants", "Étudiants")}
       ${link("#/classement", "Classement")}
       ${link("#/reglages", "Réglages")}
+      <a href="${GUIDE_URL}" target="_blank" rel="noopener">Guide Git ↗</a>
       <div class="nav-label">Projets</div>
       ${store.data.projects.map(p => link(`#/projet/${p.id}`, `<span class="row" style="gap:8px"><i class="dot" style="background:${esc(p.color)}"></i>${esc(p.code)}</span>`)).join("")}`
     : `
       ${link("#/", "Mon espace")}
       ${link("#/tutoriel", tutorialDone(me) ? "Tutoriel GitHub" : "Tutoriel GitHub", tutorialDone(me) ? "" : `<span class="count">1</span>`)}
+      <a href="${GUIDE_URL}" target="_blank" rel="noopener">Guide Git ↗</a>
       ${me ? link(`#/projet/${me.projectId}`, "Mon projet") : ""}
       ${store.data.settings.leaderboardVisible ? link("#/classement", "Classement") : ""}`;
   const demo = store.mode === "demo" ? demoBar() : "";
@@ -356,7 +358,7 @@ export function studentHome() {
 
 export function tutorialView() {
   const me = userOf(store.session.email);
-  if (!me) return `<div class="page-head"><div><h1>Tutoriel GitHub</h1><p>Cette page est destinée aux étudiants. Passez en mode étudiant dans la barre de démo pour la tester.</p></div></div>${tutorialPreview()}`;
+  if (!me) return `<div class="page-head"><div><h1>Tutoriel GitHub</h1><p>Cette page est destinée aux étudiants. Passez en mode étudiant dans la barre de démo pour la tester.</p></div><div class="actions"><a class="btn" href="${GUIDE_URL}" target="_blank" rel="noopener">Ouvrir le guide Git complet</a></div></div>${tutorialPreview()}`;
   const p = projectOf(me.projectId);
   const steps = me.tutorial?.steps || {};
   const quiz = me.tutorial?.quiz || {};
@@ -364,10 +366,12 @@ export function tutorialView() {
   const allSteps = TUTORIAL_STEPS.every(s => steps[s.id]);
   const done = tutorialDone(me);
   const welcome = BADGES.find(b => b.id === "welcome-git");
-  return `<div class="page-head"><div><h1>Tutoriel GitHub</h1><p>${TUTORIAL_STEPS.length} étapes, un quiz de ${TUTORIAL_QUIZ.length} questions, puis le lien de votre premier commit. Comptez 45 minutes.</p></div></div>
+  return `<div class="page-head"><div><h1>Tutoriel GitHub</h1><p>${TUTORIAL_STEPS.length} étapes, un quiz de ${TUTORIAL_QUIZ.length} questions, puis le lien de votre premier commit. Comptez 1 h 30.</p></div>
+    <div class="actions"><a class="btn" href="${GUIDE_URL}" target="_blank" rel="noopener">Ouvrir le guide Git complet</a></div></div>
   <div class="tuto"><div class="stack">${TUTORIAL_STEPS.map((s, i) => `<article class="step ${steps[s.id] ? "done" : ""}"><div class="step-num">${steps[s.id] ? "✓" : i + 1}</div><div class="step-body">
       <h3>${esc(s.title)}</h3>${s.body}${s.code ? `<pre class="cmd"><code>${esc(s.code.replaceAll("{ORG}", CONFIG.githubOrg).replaceAll("{REPO}", repo))}</code></pre>` : ""}
       ${s.tip ? `<p class="tip">${esc(s.tip)}</p>` : ""}
+      ${s.guide ? `<a class="small" href="${GUIDE_URL}${s.guide}" target="_blank" rel="noopener">Lire le chapitre correspondant du guide →</a>` : ""}
       ${done ? "" : `<label class="check"><input type="checkbox" data-action="tuto-step" data-step="${s.id}" ${steps[s.id] ? "checked" : ""}> C'est fait</label>`}</div></article>`).join("")}
   </div>
   <aside class="tuto-side">

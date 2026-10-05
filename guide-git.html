@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guide Git et GitHub</title>
+<meta name="description" content="Guide Git et GitHub pour les projets L2/L3 de l'ESST : comprendre, enregistrer des versions, revenir en arrière, travailler en binôme.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=JetBrains+Mono:wght@400;600&display=swap">
+</head>
+<body>
+<!--GUIDE-START-->
+<style>
+/* Guide Git — sommaire fixe à gauche, chapitres numérotés (vraie progression), mêmes couleurs que l'Atelier (vernis vert, cuivre). */
+:root {
+  --bg: #f2f4f0; --surface: #ffffff; --surface-2: #f7f9f6; --ink: #16201a; --muted: #5a685f; --line: #d9e1da;
+  --accent: #1d6a48; --accent-ink: #ffffff; --accent-soft: #e2efe7; --copper: #a8642f; --copper-soft: #f6e9dc;
+  --good: #2c8553; --warn: #b7800c; --crit: #bf3d36; --good-soft: #e3f2e8; --warn-soft: #fbf1d9; --crit-soft: #f9e3e1;
+  --code-bg: #111a15; --code-ink: #d6eadc; --code-dim: #8fa89a;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1411; --surface: #151d18; --surface-2: #1a231e; --ink: #e4ebe6; --muted: #93a39a; --line: #2a362f;
+    --accent: #4cae82; --accent-ink: #08130d; --accent-soft: #1b3327; --copper: #db9a62; --copper-soft: #3a2a1c;
+    --good: #5cc28a; --warn: #e0b04a; --crit: #ec7a72; --good-soft: #193226; --warn-soft: #362c14; --crit-soft: #3b1f1d;
+    --code-bg: #0a100c; --code-ink: #d6eadc; --code-dim: #7f978a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1411; --surface: #151d18; --surface-2: #1a231e; --ink: #e4ebe6; --muted: #93a39a; --line: #2a362f;
+  --accent: #4cae82; --accent-ink: #08130d; --accent-soft: #1b3327; --copper: #db9a62; --copper-soft: #3a2a1c;
+  --good: #5cc28a; --warn: #e0b04a; --crit: #ec7a72; --good-soft: #193226; --warn-soft: #362c14; --crit-soft: #3b1f1d;
+  --code-bg: #0a100c; --code-ink: #d6eadc; --code-dim: #7f978a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.65 var(--font-body); }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, pre, kbd { font-family: var(--font-mono); }
+:not(pre) > code { font-size: .86em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; text-wrap: balance; letter-spacing: -.01em; margin: 0; }
+p { margin: 0; }
+
+.layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; gap: 40px; padding-inline: 24px; }
+.toc { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding-block: 28px; display: flex; flex-direction: column; gap: 14px; }
+.toc .brand { display: flex; gap: 10px; align-items: center; text-decoration: none; color: var(--ink); }
+.toc .brand b { font-family: var(--font-display); line-height: 1.1; display: block; }
+.toc .brand small { color: var(--muted); font-size: .78rem; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; counter-reset: ch; }
+.toc li a { display: grid; grid-template-columns: 26px 1fr; gap: 4px; padding: 5px 8px; border-radius: 7px; text-decoration: none; color: var(--muted); font-size: .9rem; line-height: 1.35; }
+.toc li a::before { counter-increment: ch; content: counter(ch, decimal-leading-zero); font-family: var(--font-mono); font-size: .74rem; padding-top: 2px; }
+.toc li a:hover { background: var(--surface); color: var(--ink); }
+.toc li a.on { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.toc .back { font-size: .85rem; }
+
+main { padding-block: 36px 96px; min-width: 0; display: flex; flex-direction: column; gap: 56px; }
+.hero { display: flex; flex-direction: column; gap: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.eyebrow { font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--copper); font-weight: 700; }
+.hero h1 { font-size: clamp(2rem, 4.4vw, 3rem); font-weight: 800; }
+.hero p { max-width: 64ch; font-size: 1.08rem; color: var(--muted); }
+.hero .meta { display: flex; gap: 18px; flex-wrap: wrap; font-size: .88rem; color: var(--muted); }
+.hero .meta b { color: var(--ink); }
+
+section.ch { display: flex; flex-direction: column; gap: 16px; }
+section.ch > header { display: flex; gap: 14px; align-items: baseline; }
+section.ch > header .num { font-family: var(--font-mono); color: var(--copper); font-weight: 600; font-size: .9rem; }
+section.ch h2 { font-size: 1.65rem; font-weight: 750; }
+section.ch h3 { font-size: 1.1rem; font-weight: 700; margin-top: 8px; }
+section.ch p, section.ch li { max-width: 70ch; }
+section.ch ul, section.ch ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 6px; }
+
+.cmd { position: relative; background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 0; font-size: .86rem; line-height: 1.7; }
+.cmd .c { color: var(--code-dim); }
+.cmd .out { color: #a9d9b9; }
+.copy { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,.08); color: var(--code-ink); border: 1px solid rgba(255,255,255,.18); border-radius: 6px; font: 600 .74rem var(--font-body); padding: 3px 9px; cursor: pointer; }
+.copy:hover { background: rgba(255,255,255,.16); }
+
+.note, .warn, .danger { border-radius: 10px; padding: 12px 16px; font-size: .95rem; max-width: 78ch; }
+.note { background: var(--accent-soft); border-left: 4px solid var(--accent); }
+.warn { background: var(--warn-soft); border-left: 4px solid var(--warn); }
+.danger { background: var(--crit-soft); border-left: 4px solid var(--crit); }
+.note b:first-child, .warn b:first-child, .danger b:first-child { display: block; margin-bottom: 2px; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); background: var(--surface-2); }
+tr:last-child td { border-bottom: none; }
+td code { white-space: nowrap; }
+.risk { font-size: .74rem; font-weight: 700; border-radius: 99px; padding: 1px 8px; white-space: nowrap; }
+.risk.ok { background: var(--good-soft); color: var(--good); }
+.risk.mid { background: var(--warn-soft); color: var(--warn); }
+.risk.bad { background: var(--crit-soft); color: var(--crit); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.card b { font-family: var(--font-display); }
+.card span { color: var(--muted); font-size: .92rem; }
+
+.vocab { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 28px; margin: 0; }
+.vocab div { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.vocab dt { font-family: var(--font-mono); font-weight: 600; font-size: .88rem; color: var(--accent); }
+.vocab dd { margin: 0; font-size: .94rem; }
+
+figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+figure .fig { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 560px; height: auto; }
+figcaption { color: var(--muted); font-size: .88rem; max-width: 70ch; }
+svg text { font-family: var(--font-body); }
+
+.steps { counter-reset: st; list-style: none; padding: 0 !important; }
+.steps > li { counter-increment: st; display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; }
+.steps > li::before { content: counter(st); width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 800; display: grid; place-items: center; font-size: .85rem; margin-top: 2px; }
+.steps > li > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.exo { border: 2px dashed var(--copper); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); }
+.exo h3 { color: var(--copper); margin: 0; }
+footer { color: var(--muted); font-size: .86rem; border-top: 1px solid var(--line); padding-top: 18px; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding-inline: 16px; }
+  .toc { position: static; height: auto; padding-block: 20px 0; }
+  .toc ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  main { padding-top: 24px; gap: 44px; }
+  .vocab div { grid-template-columns: 110px minmax(0, 1fr); }
+}
+</style>
+
+<div class="layout">
+<nav class="toc" aria-label="Sommaire">
+  <a class="brand" href="#top"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="1" y="1" width="32" height="32" rx="8" fill="var(--accent)"/><circle cx="12" cy="10" r="2.6" fill="var(--accent-ink)"/><circle cx="12" cy="24" r="2.6" fill="var(--accent-ink)"/><circle cx="22" cy="14" r="2.6" fill="var(--copper)"/><path d="M12 12.6v8.8M22 16.6c0 4-4 4.4-8 6" stroke="var(--accent-ink)" stroke-width="2" fill="none" stroke-linecap="round"/></svg><div><b>Guide Git et GitHub</b><small>Projets L2/L3 · ESST</small></div></a>
+  <ol>
+    <li><a href="#cest-quoi">Git et GitHub, c'est quoi ?</a></li>
+    <li><a href="#pourquoi">À quoi ça sert</a></li>
+    <li><a href="#vocabulaire">Le vocabulaire</a></li>
+    <li><a href="#zones">Les trois zones de Git</a></li>
+    <li><a href="#installer">Installer et configurer</a></li>
+    <li><a href="#demarrer">Récupérer le dépôt</a></li>
+    <li><a href="#quotidien">Le cycle de tous les jours</a></li>
+    <li><a href="#historique">Lire l'historique</a></li>
+    <li><a href="#revenir">Revenir en arrière</a></li>
+    <li><a href="#versions">Marquer des versions</a></li>
+    <li><a href="#branches">Branches et pull requests</a></li>
+    <li><a href="#conflits">Résoudre un conflit</a></li>
+    <li><a href="#gitignore">Ce qu'on ne met pas dans Git</a></li>
+    <li><a href="#erreurs">Erreurs fréquentes</a></li>
+    <li><a href="#aide-memoire">Aide-mémoire</a></li>
+    <li><a href="#exercices">Exercices en binôme</a></li>
+  </ol>
+  <a class="back" href="index.html">← Retour à l'Atelier Projets</a>
+</nav>
+
+<main id="top">
+  <header class="hero">
+    <div class="eyebrow">Première mission · tous les étudiants</div>
+    <h1>Git et GitHub, du premier commit au retour en arrière</h1>
+    <p>Ce guide accompagne le tutoriel obligatoire de l'Atelier. Lisez les chapitres 1 à 9 avant de commencer, gardez l'aide-mémoire ouvert pendant le projet, et faites les exercices avec votre binôme.</p>
+    <div class="meta"><span><b>16</b> chapitres</span><span><b>1 h 30</b> de lecture et de pratique</span><span>Commandes valables avec Git <b>2.23</b> et plus récent</span></div>
+  </header>
+
+  <section class="ch" id="cest-quoi">
+    <header><span class="num">01</span><h2>Git et GitHub, c'est quoi ?</h2></header>
+    <p>Vous avez sûrement déjà eu un dossier qui ressemble à ça : <code>rapport_v2.docx</code>, <code>rapport_v3_corrige.docx</code>, <code>rapport_FINAL.docx</code>, <code>rapport_FINAL_vraiment.docx</code>. Personne ne sait plus quelle version est la bonne ni ce qui a changé entre deux. Git règle exactement ce problème.</p>
+    <div class="cards">
+      <div class="card"><b>Git</b><span>Un logiciel installé sur votre ordinateur. Il enregistre l'historique complet de votre projet : chaque version, qui l'a faite, quand et pourquoi. Il fonctionne sans Internet.</span></div>
+      <div class="card"><b>GitHub</b><span>Un site web qui héberge une copie de votre projet Git. Il sert de sauvegarde en ligne et de point de rencontre : votre binôme et votre encadrant y voient le même projet que vous.</span></div>
+    </div>
+    <p>Git est l'outil, GitHub est le lieu de partage. On peut utiliser Git sans GitHub (seul, sur son PC), mais pour un projet à deux, on utilise les deux. Il existe d'autres sites du même genre (GitLab, Bitbucket) ; les commandes Git sont identiques.</p>
+  </section>
+
+  <section class="ch" id="pourquoi">
+    <header><span class="num">02</span><h2>À quoi ça sert, concrètement</h2></header>
+    <div class="cards">
+      <div class="card"><b>Revenir en arrière</b><span>Votre firmware ESP32 marchait hier et plus aujourd'hui ? Vous retrouvez la version d'hier en une commande, et vous voyez ligne par ligne ce qui a changé.</span></div>
+      <div class="card"><b>Travailler à deux sans s'écraser</b><span>Chacun travaille sur sa copie. Git fusionne vos modifications, même sur le même fichier, et vous prévient seulement s'il y a un vrai désaccord.</span></div>
+      <div class="card"><b>Sauvegarde</b><span>Un PC volé ou une clé USB perdue ne coûte plus le projet : tout est sur GitHub.</span></div>
+      <div class="card"><b>Savoir qui a fait quoi</b><span>Chaque modification porte un nom et une date. L'encadrant voit la part de chacun, et vous retrouvez pourquoi une ligne a été écrite.</span></div>
+      <div class="card"><b>Essayer sans risque</b><span>Une idée risquée se teste sur une branche. Si elle échoue, on la supprime ; la version qui marche n'a jamais été touchée.</span></div>
+      <div class="card"><b>Un atout pour votre CV</b><span>Git est utilisé dans presque toutes les entreprises du logiciel et de l'embarqué. Un profil GitHub avec de vrais projets se montre en entretien.</span></div>
+    </div>
+  </section>
+
+  <section class="ch" id="vocabulaire">
+    <header><span class="num">03</span><h2>Le vocabulaire</h2></header>
+    <p>Les mots sont en anglais dans les commandes ; voici ce qu'ils veulent dire.</p>
+    <dl class="vocab">
+      <div><dt>dépôt (repo)</dt><dd>Le dossier du projet suivi par Git, avec tout son historique (caché dans un sous-dossier <code>.git</code>).</dd></div>
+      <div><dt>commit</dt><dd>Une version enregistrée du projet : une « photo » des fichiers, avec un message, un auteur, une date et un identifiant (ex. <code>a1b2c3d</code>).</dd></div>
+      <div><dt>branche</dt><dd>Une ligne de travail parallèle. La branche principale s'appelle <code>main</code>.</dd></div>
+      <div><dt>HEAD</dt><dd>« Vous êtes ici » : le commit sur lequel vous travaillez en ce moment.</dd></div>
+      <div><dt>remote / origin</dt><dd>La copie du dépôt sur GitHub. <code>origin</code> est son nom par défaut.</dd></div>
+      <div><dt>clone</dt><dd>Télécharger un dépôt GitHub sur votre ordinateur, historique compris.</dd></div>
+      <div><dt>push</dt><dd>Envoyer vos commits vers GitHub.</dd></div>
+      <div><dt>pull</dt><dd>Récupérer les commits des autres depuis GitHub.</dd></div>
+      <div><dt>merge</dt><dd>Fusionner une branche dans une autre.</dd></div>
+      <div><dt>pull request (PR)</dt><dd>Sur GitHub, une demande de fusion d'une branche, que votre binôme relit avant d'accepter.</dd></div>
+      <div><dt>conflit</dt><dd>Deux modifications incompatibles de la même ligne ; Git vous demande de choisir.</dd></div>
+      <div><dt>tag</dt><dd>Une étiquette posée sur un commit important, par exemple <code>v1.0-mvp</code>.</dd></div>
+    </dl>
+  </section>
+
+  <section class="ch" id="zones">
+    <header><span class="num">04</span><h2>Les trois zones de Git</h2></header>
+    <p>C'est l'idée la plus importante du guide. Un fichier modifié ne part pas directement sur GitHub : il passe par trois étapes, chacune déclenchée par une commande.</p>
+    <figure>
+      <div class="fig"><svg viewBox="0 0 760 236" role="img" aria-label="Un fichier passe du dossier de travail à l'index, puis à l'historique local, puis à GitHub">
+        <defs><marker id="z-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker>
+        <marker id="z-arrow-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--copper)"/></marker></defs>
+        <text x="20" y="26" font-size="15" font-weight="700" fill="var(--ink)">Trois commandes pour qu'une modification arrive sur GitHub</text>
+        <g><rect x="20" y="64" width="150" height="76" rx="10" fill="var(--surface-2)" stroke="var(--muted)"/><text x="95" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">Dossier de travail</text><text x="95" y="118" text-anchor="middle" font-size="12" fill="var(--muted)">vos fichiers modifiés</text></g>
+        <g><rect x="215" y="64" width="150" height="76" rx="10" fill="var(--surface-2)" stroke="var(--muted)"/><text x="290" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">Index</text><text x="290" y="118" text-anchor="middle" font-size="12" fill="var(--muted)">prêt pour le commit</text></g>
+        <g><rect x="410" y="64" width="150" height="76" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="485" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">Historique local</text><text x="485" y="118" text-anchor="middle" font-size="12" fill="var(--muted)">vos commits, sur le PC</text></g>
+        <g><rect x="600" y="64" width="145" height="76" rx="10" fill="var(--copper-soft)" stroke="var(--copper)" stroke-width="1.6"/><text x="672" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="var(--ink)">GitHub</text><text x="672" y="118" text-anchor="middle" font-size="12" fill="var(--muted)">partagé en ligne</text></g>
+        <g fill="none" stroke="var(--muted)" stroke-width="1.4"><path d="M170 102H211" marker-end="url(#z-arrow)"/><path d="M365 102H406" marker-end="url(#z-arrow)"/><path d="M560 102H596" marker-end="url(#z-arrow)"/></g>
+        <g font-family="var(--font-mono)" font-size="12" font-weight="600" fill="var(--accent)"><text x="190" y="56" text-anchor="middle">git add</text><text x="385" y="56" text-anchor="middle">git commit</text><text x="580" y="56" text-anchor="middle">git push</text></g>
+        <path d="M672 140V190H95V144" fill="none" stroke="var(--copper)" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#z-arrow-c)"/>
+        <text x="384" y="210" text-anchor="middle" font-family="var(--font-mono)" font-size="12" font-weight="600" fill="var(--copper)">git pull : récupérer le travail du binôme</text>
+      </svg></div>
+      <figcaption>Tant que vous n'avez pas fait <code>git push</code>, vos commits n'existent que sur votre ordinateur : votre binôme ne les voit pas.</figcaption>
+    </figure>
+    <p>Pourquoi un index ? Parce qu'on ne veut pas toujours tout enregistrer d'un coup. Vous avez modifié le code du GPS et le rapport : vous pouvez faire un commit pour le code, puis un autre pour le rapport. Deux commits clairs valent mieux qu'un commit fourre-tout.</p>
+  </section>
+
+  <section class="ch" id="installer">
+    <header><span class="num">05</span><h2>Installer et configurer</h2></header>
+    <ol class="steps">
+      <li><div><p><b>Créez un compte</b> sur <a href="https://github.com/signup" target="_blank" rel="noopener">github.com</a> avec votre adresse étudiante, et envoyez votre nom d'utilisateur à l'encadrant.</p></div></li>
+      <li><div><p><b>Installez Git</b> depuis <a href="https://git-scm.com/downloads" target="_blank" rel="noopener">git-scm.com</a>. Sous Windows, gardez les options par défaut : vous obtenez « Git Bash », un terminal où taper les commandes. Sous Linux : <code>sudo apt install git</code>. Sous macOS : <code>xcode-select --install</code>.</p></div></li>
+      <li><div><p><b>Présentez-vous à Git</b>, une seule fois par ordinateur. Mettez la même adresse que sur GitHub, sinon vos commits ne seront pas reliés à votre profil.</p>
+<pre class="cmd"><code>git config --global user.name "Prénom Nom"
+git config --global user.email "votre.adresse@exemple.dz"
+git config --global init.defaultBranch main
+git --version            <span class="c"># vérifie l'installation</span></code></pre></div></li>
+    </ol>
+    <div class="note"><b>Sans terminal ?</b>VS Code (onglet « Source Control ») et GitHub Desktop font les mêmes opérations avec des boutons. Apprenez quand même les commandes : elles fonctionnent partout et c'est ce qui sera demandé en soutenance.</div>
+  </section>
+
+  <section class="ch" id="demarrer">
+    <header><span class="num">06</span><h2>Récupérer le dépôt du projet</h2></header>
+    <p>L'encadrant a créé le dépôt de votre groupe et vous a invité. Acceptez l'invitation (e-mail ou <a href="https://github.com/notifications" target="_blank" rel="noopener">github.com/notifications</a>), puis sur la page du dépôt cliquez sur le bouton vert <b>Code</b> et copiez l'adresse HTTPS.</p>
+<pre class="cmd"><code>cd ~/Documents                        <span class="c"># là où vous rangez vos projets</span>
+git clone https://github.com/ORGANISATION/p1-bus-gps.git
+cd p1-bus-gps
+git status</code></pre>
+    <p>Au premier <code>push</code>, une fenêtre de navigateur s'ouvre pour vous connecter à GitHub : acceptez. GitHub n'accepte plus le mot de passe du compte dans le terminal ; si on vous le demande quand même, utilisez un « personal access token » (Settings → Developer settings).</p>
+    <div class="note"><b>Créer un dépôt soi-même</b>Pour un projet personnel : <code>git init</code> dans un dossier existant, puis créez un dépôt vide sur GitHub et suivez les deux commandes que GitHub affiche (<code>git remote add origin …</code> puis <code>git push -u origin main</code>).</div>
+  </section>
+
+  <section class="ch" id="quotidien">
+    <header><span class="num">07</span><h2>Le cycle de tous les jours</h2></header>
+    <p>À chaque séance de travail, la même routine :</p>
+<pre class="cmd"><code>git pull                          <span class="c"># 1. récupérer le travail du binôme</span>
+<span class="c">#    … vous modifiez vos fichiers …</span>
+git status                        <span class="c"># 2. voir ce qui a changé</span>
+git diff                          <span class="c"># 3. relire vos modifications ligne par ligne</span>
+git add firmware/gps.cpp          <span class="c"># 4. choisir les fichiers du commit</span>
+git commit -m "Ajoute la lecture des trames NMEA"   <span class="c"># 5. enregistrer la version</span>
+git push                          <span class="c"># 6. envoyer sur GitHub</span></code></pre>
+    <p><code>git add .</code> ajoute tous les fichiers modifiés du dossier courant. C'est pratique, mais relisez <code>git status</code> avant : c'est comme ça qu'on envoie par erreur un mot de passe Wi-Fi ou 200 Mo de fichiers de compilation.</p>
+    <h3>Écrire un bon message de commit</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>À éviter</th><th>À faire</th></tr></thead>
+      <tbody>
+        <tr><td><code>update</code></td><td><code>Ajoute la détection de pic sur le piézo 1</code></td></tr>
+        <tr><td><code>fix</code></td><td><code>Corrige le double déclenchement avec un temps mort de 30 ms</code></td></tr>
+        <tr><td><code>modifs du mardi</code></td><td><code>Rédige la partie conception du rapport</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>La règle : un verbe au présent, puis ce que fait le commit, en moins de 70 caractères. Dans trois semaines, c'est ce message qui vous permettra de retrouver la bonne version.</p>
+    <div class="note"><b>Combien de commits ?</b>Un commit par étape qui fonctionne, souvent plusieurs par séance. Un petit commit se comprend et s'annule facilement ; un commit de toute une semaine, non.</div>
+  </section>
+
+  <section class="ch" id="historique">
+    <header><span class="num">08</span><h2>Lire l'historique</h2></header>
+<pre class="cmd"><code>git log --oneline --graph --all   <span class="c"># l'historique, un commit par ligne</span>
+<span class="out">* 7f3c2e1 (HEAD -> main, origin/main) Ajoute le calcul du temps d'arrivée
+* 4b9a0d8 Affiche la position sur la carte Leaflet
+* a1b2c3d Ajoute la lecture des trames NMEA
+* 0e5f6a7 Premier commit : structure du dépôt</span>
+git show a1b2c3d                  <span class="c"># ce qu'a changé un commit précis</span>
+git diff a1b2c3d 7f3c2e1          <span class="c"># différences entre deux versions</span>
+git log -- firmware/gps.cpp       <span class="c"># l'historique d'un seul fichier</span>
+git blame firmware/gps.cpp        <span class="c"># qui a écrit chaque ligne, et dans quel commit</span></code></pre>
+    <p>L'identifiant (<code>a1b2c3d</code>) désigne une version de façon unique. Les 7 premiers caractères suffisent. On peut aussi compter depuis la position actuelle : <code>HEAD~1</code> est le commit d'avant, <code>HEAD~3</code> celui d'il y a trois commits.</p>
+    <p>Sur GitHub, le même historique est dans l'onglet <b>Commits</b> du dépôt ; sur un fichier, les boutons <b>History</b> et <b>Blame</b> font la même chose que les commandes ci-dessus.</p>
+  </section>
+
+  <section class="ch" id="revenir">
+    <header><span class="num">09</span><h2>Revenir en arrière</h2></header>
+    <p>C'est la raison d'être de Git. La bonne commande dépend de deux questions : <b>la modification est-elle déjà enregistrée dans un commit ?</b> et <b>ce commit est-il déjà sur GitHub ?</b></p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Situation</th><th>Commande</th><th>Risque</th></tr></thead>
+      <tbody>
+        <tr><td>J'ai cassé un fichier et je veux le remettre comme au dernier commit</td><td><code>git restore fichier</code></td><td><span class="risk mid">perd les modifs du fichier</span></td></tr>
+        <tr><td>J'ai fait <code>git add</code> sur un fichier par erreur</td><td><code>git restore --staged fichier</code></td><td><span class="risk ok">sans risque</span></td></tr>
+        <tr><td>Je veux mettre mes modifications de côté pour faire un <code>pull</code></td><td><code>git stash</code> puis <code>git stash pop</code></td><td><span class="risk ok">sans risque</span></td></tr>
+        <tr><td>Mon dernier commit a un mauvais message ou un fichier oublié (pas encore poussé)</td><td><code>git add oubli.cpp</code><br><code>git commit --amend</code></td><td><span class="risk ok">sans risque</span></td></tr>
+        <tr><td>Je veux récupérer un fichier tel qu'il était dans un ancien commit</td><td><code>git restore --source a1b2c3d fichier</code></td><td><span class="risk mid">remplace le fichier actuel</span></td></tr>
+        <tr><td>Je veux juste regarder ou tester une ancienne version</td><td><code>git switch --detach a1b2c3d</code><br>puis <code>git switch main</code></td><td><span class="risk ok">sans risque</span></td></tr>
+        <tr><td><b>Un commit déjà sur GitHub a cassé le projet</b></td><td><code>git revert 7f3c2e1</code><br><code>git push</code></td><td><span class="risk ok">sans risque</span></td></tr>
+        <tr><td>Je veux effacer mes derniers commits, pas encore poussés</td><td><code>git reset --hard a1b2c3d</code></td><td><span class="risk bad">efface le travail</span></td></tr>
+        <tr><td>J'ai fait un <code>reset</code> et je veux retrouver un commit « perdu »</td><td><code>git reflog</code> puis <code>git reset --hard ID</code></td><td><span class="risk mid">à faire vite</span></td></tr>
+      </tbody>
+    </table></div>
+    <h3>revert ou reset : la différence qui compte</h3>
+    <figure>
+      <div class="fig"><svg viewBox="0 0 760 250" role="img" aria-label="revert ajoute un commit qui annule, reset retire des commits de l'historique">
+        <text x="20" y="26" font-size="15" font-weight="700" fill="var(--ink)">revert ajoute un commit d'annulation ; reset efface des commits</text>
+        <text x="20" y="74" font-size="13" font-weight="700" fill="var(--ink)">Au départ</text>
+        <text x="20" y="144" font-family="var(--font-mono)" font-size="13" font-weight="700" fill="var(--good)">git revert C</text>
+        <text x="20" y="214" font-family="var(--font-mono)" font-size="13" font-weight="700" fill="var(--crit)">git reset B</text>
+        <g stroke="var(--muted)" stroke-width="1.6"><line x1="200" y1="70" x2="420" y2="70"/><line x1="200" y1="140" x2="520" y2="140"/><line x1="200" y1="210" x2="310" y2="210"/></g>
+        <g font-size="13" font-weight="700" text-anchor="middle">
+          <circle cx="200" cy="70" r="15" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="200" y="75" fill="var(--ink)">A</text>
+          <circle cx="310" cy="70" r="15" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="310" y="75" fill="var(--ink)">B</text>
+          <circle cx="420" cy="70" r="15" fill="var(--crit-soft)" stroke="var(--crit)" stroke-width="2"/><text x="420" y="75" fill="var(--ink)">C</text>
+          <circle cx="200" cy="140" r="15" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="200" y="145" fill="var(--ink)">A</text>
+          <circle cx="310" cy="140" r="15" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="310" y="145" fill="var(--ink)">B</text>
+          <circle cx="420" cy="140" r="15" fill="var(--crit-soft)" stroke="var(--crit)" stroke-width="2"/><text x="420" y="145" fill="var(--ink)">C</text>
+          <circle cx="520" cy="140" r="15" fill="var(--good-soft)" stroke="var(--good)" stroke-width="2"/><text x="520" y="145" fill="var(--ink)">C⁻¹</text>
+          <circle cx="200" cy="210" r="15" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="200" y="215" fill="var(--ink)">A</text>
+          <circle cx="310" cy="210" r="15" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="310" y="215" fill="var(--ink)">B</text>
+          <circle cx="420" cy="210" r="15" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 3"/><text x="420" y="215" fill="var(--muted)">C</text>
+        </g>
+        <text x="448" y="75" font-size="12" fill="var(--muted)">C a cassé le firmware</text>
+        <text x="548" y="145" font-size="12" fill="var(--muted)">nouveau commit qui défait C</text>
+        <text x="448" y="215" font-size="12" fill="var(--muted)">C disparaît de l'historique</text>
+      </svg></div>
+      <figcaption>Avec <code>revert</code>, l'historique garde la trace de l'erreur et de sa correction : votre binôme peut faire <code>git pull</code> sans problème. Avec <code>reset</code>, l'historique est réécrit ; si C était déjà sur GitHub, le binôme se retrouve avec un historique différent du vôtre.</figcaption>
+    </figure>
+    <div class="danger"><b>La règle d'or</b>Ce qui est déjà sur GitHub ne s'efface pas : on l'annule avec <code>git revert</code>. Réservez <code>git reset --hard</code>, <code>git commit --amend</code> et <code>git push --force</code> aux commits qui ne sont encore que sur votre ordinateur.</div>
+    <h3>Exemple complet : le firmware ne marche plus</h3>
+<pre class="cmd"><code>git log --oneline                     <span class="c"># repérer les derniers commits</span>
+<span class="out">7f3c2e1 Passe le GPS à 10 Hz
+4b9a0d8 Ajoute le mode économie d'énergie
+a1b2c3d Lecture NMEA stable</span>
+git switch --detach a1b2c3d           <span class="c"># tester l'ancienne version : flasher l'ESP32</span>
+git switch main                       <span class="c"># revenir au présent</span>
+git revert 7f3c2e1                    <span class="c"># le coupable est 7f3c2e1 : on l'annule</span>
+git push</code></pre>
+  </section>
+
+  <section class="ch" id="versions">
+    <header><span class="num">10</span><h2>Marquer des versions</h2></header>
+    <p>Chaque commit est une version, mais certaines comptent plus que d'autres : celle présentée à la démo technique, le MVP, la version de soutenance. On leur pose un <b>tag</b>, une étiquette qui ne bouge plus.</p>
+<pre class="cmd"><code>git tag -a v0.4-demo -m "Démo technique de la semaine 4"
+git push origin v0.4-demo             <span class="c"># les tags ne partent pas avec un push normal</span>
+git tag                               <span class="c"># liste des versions</span>
+git switch --detach v0.4-demo         <span class="c"># revenir exactement à la version de la démo</span>
+git diff v0.4-demo v1.0-mvp           <span class="c"># tout ce qui a changé entre les deux</span></code></pre>
+    <p>Pour l'Atelier, utilisez ces noms aux jalons : <code>v0.1-cdc</code> (cahier des charges, S1), <code>v0.4-demo</code> (S4), <code>v1.0-mvp</code> (S6), <code>v1.1-final</code> (S8). Sur GitHub, transformez un tag en <b>Release</b> (onglet Releases → Draft a new release) pour y joindre le binaire du firmware, l'APK de l'application ou le PDF du rapport.</p>
+    <div class="note"><b>Astuce embarqué</b>Affichez la version dans le firmware au démarrage (<code>Serial.println("bus-gps v1.0-mvp");</code>). Quand une carte se comporte bizarrement, vous savez immédiatement quel code elle contient.</div>
+  </section>
+
+  <section class="ch" id="branches">
+    <header><span class="num">11</span><h2>Branches et pull requests</h2></header>
+    <p>La branche <code>main</code> doit toujours contenir une version qui marche. Chaque tâche se fait sur sa propre branche, et n'arrive dans <code>main</code> qu'après relecture par le binôme.</p>
+    <figure>
+      <div class="fig"><svg viewBox="0 0 760 200" role="img" aria-label="Une branche part de main, reçoit deux commits, puis revient dans main par une pull request">
+        <text x="20" y="26" font-size="15" font-weight="700" fill="var(--ink)">La tâche vit sur sa branche, puis revient dans main par une pull request</text>
+        <text x="20" y="84" font-family="var(--font-mono)" font-size="13" font-weight="700" fill="var(--accent)">main</text>
+        <text x="20" y="154" font-family="var(--font-mono)" font-size="12.5" font-weight="700" fill="var(--copper)">sarah/carte-leaflet</text>
+        <line x1="180" y1="80" x2="700" y2="80" stroke="var(--accent)" stroke-width="2"/>
+        <path d="M290 80C320 80 330 150 360 150H530C560 150 570 80 600 80" fill="none" stroke="var(--copper)" stroke-width="2"/>
+        <g font-size="12" font-weight="700" text-anchor="middle">
+          <circle cx="180" cy="80" r="11" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+          <circle cx="290" cy="80" r="11" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+          <circle cx="400" cy="150" r="11" fill="var(--surface)" stroke="var(--copper)" stroke-width="2"/>
+          <circle cx="490" cy="150" r="11" fill="var(--surface)" stroke="var(--copper)" stroke-width="2"/>
+          <circle cx="600" cy="80" r="13" fill="var(--accent)" stroke="var(--accent)" stroke-width="2"/>
+          <circle cx="700" cy="80" r="11" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+        </g>
+        <g font-size="11.5" fill="var(--muted)" text-anchor="middle">
+          <text x="290" y="60">git switch -c</text><text x="445" y="182">commits de la tâche</text><text x="600" y="58" fill="var(--ink)" font-weight="700">merge de la PR</text>
+        </g>
+      </svg></div>
+      <figcaption>Pendant que Sarah travaille sur sa branche, son binôme peut continuer sur <code>main</code> ou sur sa propre branche : personne n'est bloqué.</figcaption>
+    </figure>
+<pre class="cmd"><code>git switch main
+git pull
+git switch -c sarah/carte-leaflet      <span class="c"># nouvelle branche pour la tâche</span>
+<span class="c"># … commits …</span>
+git push -u origin sarah/carte-leaflet <span class="c"># premier envoi de la branche</span></code></pre>
+    <ol class="steps">
+      <li><div><p>Sur GitHub, cliquez sur <b>Compare &amp; pull request</b>. Titre = le résultat de la tâche ; description = ce qui a été fait et comment le tester.</p></div></li>
+      <li><div><p>Le binôme relit l'onglet <b>Files changed</b>, commente si besoin, puis clique sur <b>Merge pull request</b>.</p></div></li>
+      <li><div><p>Chacun revient sur <code>main</code> et récupère la fusion :</p>
+<pre class="cmd"><code>git switch main
+git pull
+git branch -d sarah/carte-leaflet      <span class="c"># supprimer la branche terminée</span></code></pre></div></li>
+    </ol>
+    <p>Nommez les branches <code>prénom/sujet-court</code> : on sait tout de suite à qui elles sont et ce qu'elles contiennent.</p>
+  </section>
+
+  <section class="ch" id="conflits">
+    <header><span class="num">12</span><h2>Résoudre un conflit</h2></header>
+    <p>Un conflit arrive quand vous et votre binôme avez modifié <b>la même ligne</b> du même fichier. Ce n'est pas une erreur : Git refuse simplement de choisir à votre place. Il l'indique au <code>pull</code> ou au <code>merge</code> :</p>
+<pre class="cmd"><code><span class="out">CONFLICT (content): Merge conflict in firmware/config.h
+Automatic merge failed; fix conflicts and then commit the result.</span></code></pre>
+    <p>Dans le fichier, Git a placé les deux versions entre des marques :</p>
+<pre class="cmd"><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+#define SEUIL_PIEZO 180        <span class="c">// votre version</span>
+=======
+#define SEUIL_PIEZO 220        <span class="c">// la version du binôme</span>
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main</code></pre>
+    <ol class="steps">
+      <li><div><p>Discutez avec votre binôme pour savoir quelle valeur garder (ou combinez les deux).</p></div></li>
+      <li><div><p>Modifiez le fichier pour qu'il ne reste que la bonne version, <b>sans les marques</b> <code>&lt;&lt;&lt;</code>, <code>===</code>, <code>&gt;&gt;&gt;</code>.</p></div></li>
+      <li><div><pre class="cmd"><code>git add firmware/config.h
+git commit                             <span class="c"># Git propose un message de fusion</span>
+git push</code></pre></div></li>
+    </ol>
+    <p>Pour abandonner et revenir à l'état d'avant : <code>git merge --abort</code>. Pour en avoir moins : faites <code>git pull</code> avant de commencer, des commits petits et fréquents, et répartissez-vous les fichiers.</p>
+  </section>
+
+  <section class="ch" id="gitignore">
+    <header><span class="num">13</span><h2>Ce qu'on ne met pas dans Git</h2></header>
+    <p>Git sert au code source et aux documents que vous écrivez, pas à ce qui est généré automatiquement ni aux secrets. Créez à la racine du dépôt un fichier <code>.gitignore</code> :</p>
+<pre class="cmd"><code><span class="c"># Compilation (PlatformIO, Arduino, IDE)</span>
+.pio/
+build/
+*.bin
+*.elf
+.vscode/
+<span class="c"># Web et applications</span>
+node_modules/
+dist/
+<span class="c"># Système</span>
+.DS_Store
+Thumbs.db
+<span class="c"># Secrets : JAMAIS dans Git</span>
+secrets.h
+.env</code></pre>
+    <div class="danger"><b>Mots de passe Wi-Fi, clés d'API, identifiants de base de données</b>Un dépôt public est lu par des robots qui cherchent ces informations en permanence, et un secret reste visible dans l'historique même après suppression du fichier. Mettez-les dans <code>secrets.h</code> (ignoré), et versionnez à la place un <code>secrets.example.h</code> avec des valeurs factices. Si un secret a été poussé par erreur, changez-le immédiatement.</div>
+<pre class="cmd"><code><span class="c">// secrets.example.h — à copier en secrets.h et à remplir</span>
+#define WIFI_SSID     "nom-du-reseau"
+#define WIFI_PASSWORD "mot-de-passe"</code></pre>
+    <p>Fichier déjà suivi par erreur ? <code>git rm --cached secrets.h</code>, ajoutez-le au <code>.gitignore</code>, puis faites un commit. Les grosses vidéos et fichiers de plus de 50 Mo n'ont pas leur place dans Git non plus : déposez-les dans une Release ou un lien dans le README.</p>
+  </section>
+
+  <section class="ch" id="erreurs">
+    <header><span class="num">14</span><h2>Erreurs fréquentes</h2></header>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Message</th><th>Ce que ça veut dire</th><th>Solution</th></tr></thead>
+      <tbody>
+        <tr><td><code>! [rejected] main -> main (fetch first)</code></td><td>Votre binôme a poussé avant vous.</td><td><code>git pull</code> puis <code>git push</code></td></tr>
+        <tr><td><code>fatal: not a git repository</code></td><td>Vous n'êtes pas dans le dossier du dépôt.</td><td><code>cd</code> vers le bon dossier</td></tr>
+        <tr><td><code>Please tell me who you are</code></td><td>Git n'est pas configuré sur ce PC.</td><td>Les deux <code>git config</code> du chapitre 5</td></tr>
+        <tr><td><code>Authentication failed</code></td><td>GitHub refuse le mot de passe du compte.</td><td>Connexion par le navigateur, ou jeton d'accès</td></tr>
+        <tr><td><code>Your local changes would be overwritten</code></td><td>Le <code>pull</code> toucherait des fichiers que vous modifiez.</td><td><code>git stash</code>, <code>git pull</code>, <code>git stash pop</code></td></tr>
+        <tr><td><code>You are in 'detached HEAD' state</code></td><td>Vous regardez une ancienne version.</td><td><code>git switch main</code></td></tr>
+        <tr><td><code>nothing to commit, working tree clean</code></td><td>Rien n'a changé depuis le dernier commit.</td><td>Fichier enregistré dans l'éditeur ?</td></tr>
+        <tr><td>Un éditeur étrange s'ouvre (Vim)</td><td>Git attend un message de commit.</td><td>Tapez <kbd>Échap</kbd> puis <code>:wq</code> et Entrée</td></tr>
+      </tbody>
+    </table></div>
+    <p>Pour ne plus tomber sur Vim : <code>git config --global core.editor "code --wait"</code> (VS Code) ou <code>"notepad"</code> sous Windows.</p>
+  </section>
+
+  <section class="ch" id="aide-memoire">
+    <header><span class="num">15</span><h2>Aide-mémoire</h2></header>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Je veux…</th><th>Commande</th></tr></thead>
+      <tbody>
+        <tr><td>Télécharger le dépôt</td><td><code>git clone URL</code></td></tr>
+        <tr><td>Récupérer le travail du binôme</td><td><code>git pull</code></td></tr>
+        <tr><td>Voir ce qui a changé</td><td><code>git status</code> · <code>git diff</code></td></tr>
+        <tr><td>Enregistrer une version</td><td><code>git add fichier</code> · <code>git commit -m "message"</code></td></tr>
+        <tr><td>Envoyer sur GitHub</td><td><code>git push</code></td></tr>
+        <tr><td>Voir l'historique</td><td><code>git log --oneline --graph --all</code></td></tr>
+        <tr><td>Voir un ancien commit</td><td><code>git show ID</code></td></tr>
+        <tr><td>Annuler les modifs d'un fichier</td><td><code>git restore fichier</code></td></tr>
+        <tr><td>Annuler un commit déjà poussé</td><td><code>git revert ID</code></td></tr>
+        <tr><td>Tester une ancienne version</td><td><code>git switch --detach ID</code> · retour : <code>git switch main</code></td></tr>
+        <tr><td>Mettre de côté / reprendre</td><td><code>git stash</code> · <code>git stash pop</code></td></tr>
+        <tr><td>Nouvelle branche</td><td><code>git switch -c prenom/sujet</code></td></tr>
+        <tr><td>Changer de branche</td><td><code>git switch nom</code></td></tr>
+        <tr><td>Marquer une version</td><td><code>git tag -a v1.0-mvp -m "MVP"</code> · <code>git push origin v1.0-mvp</code></td></tr>
+        <tr><td>Retrouver un commit perdu</td><td><code>git reflog</code></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="ch" id="exercices">
+    <header><span class="num">16</span><h2>Exercices en binôme</h2></header>
+    <p>À faire dans le dépôt du groupe, sur une branche <code>exercices</code> que vous supprimerez ensuite. Comptez 30 minutes.</p>
+    <div class="exo"><h3>Exercice 1 · Revenir en arrière</h3>
+      <ol><li>Créez <code>essai.txt</code> avec la ligne « version 1 », faites un commit.</li><li>Remplacez par « version 2 », faites un commit et un push.</li><li>Avec <code>git revert</code>, revenez à « version 1 » sans effacer l'historique. Vérifiez avec <code>git log --oneline</code> : combien de commits voyez-vous ?</li></ol></div>
+    <div class="exo"><h3>Exercice 2 · Retrouver une ancienne version d'un fichier</h3>
+      <ol><li>Avec <code>git log --oneline -- essai.txt</code>, trouvez l'identifiant du commit « version 2 ».</li><li>Récupérez ce contenu avec <code>git restore --source ID essai.txt</code>, puis faites un commit.</li></ol></div>
+    <div class="exo"><h3>Exercice 3 · Provoquer et résoudre un conflit</h3>
+      <ol><li>Chacun modifie <b>la même ligne</b> de <code>essai.txt</code> sur son ordinateur, sans faire de pull.</li><li>Le premier fait commit + push. Le second fait commit, puis <code>git pull</code> : le conflit apparaît.</li><li>Résolvez-le ensemble (chapitre 12), puis commit et push.</li></ol></div>
+    <div class="exo"><h3>Exercice 4 · Poser un tag</h3>
+      <ol><li>Posez le tag <code>v0.0-exercices</code> et poussez-le.</li><li>Sur GitHub, trouvez-le dans l'onglet Tags et créez une Release à partir de lui.</li></ol></div>
+  </section>
+
+  <footer>Guide de l'Atelier Projets ESST · Projets L2/L3. Documentation complète et gratuite : <a href="https://git-scm.com/book/fr/v2" target="_blank" rel="noopener">le livre Pro Git en français</a>.</footer>
+</main>
+</div>
+
+<script>
+(() => {
+  // Boutons « Copier » sur les blocs de commandes (commentaires et sorties exclus).
+  document.querySelectorAll("pre.cmd").forEach(pre => {
+    const probe = pre.querySelector("code").cloneNode(true);
+    probe.querySelectorAll(".c, .out").forEach(n => n.remove());
+    if (!probe.textContent.trim()) return; // bloc de sortie seulement : rien à copier
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "copy"; b.textContent = "Copier";
+    b.addEventListener("click", async () => {
+      const clone = pre.querySelector("code").cloneNode(true);
+      clone.querySelectorAll(".c, .out").forEach(n => n.remove());
+      const text = clone.textContent.split("\n").map(l => l.replace(/\s+$/, "")).filter(Boolean).join("\n");
+      try { await navigator.clipboard.writeText(text); b.textContent = "Copié"; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Sélectionné"; }
+      setTimeout(() => (b.textContent = "Copier"), 1600);
+    });
+    pre.appendChild(b);
+  });
+  // Chapitre en cours surligné dans le sommaire.
+  const links = [...document.querySelectorAll(".toc ol a")];
+  const map = new Map(links.map(a => [a.getAttribute("href").slice(1), a]));
+  const io = new IntersectionObserver(es => {
+    es.forEach(e => { if (e.isIntersecting) { links.forEach(a => a.classList.remove("on")); map.get(e.target.id)?.classList.add("on"); } });
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll("section.ch").forEach(s => io.observe(s));
+})();
+</script>
+<!--GUIDE-END-->
+</body>
+</html>
