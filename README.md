@@ -4,7 +4,7 @@ Outil de suivi des projets L2/L3 : projets, tâches, Kanban, diagramme de Gantt,
 
 - **Hébergement** : GitHub Pages (gratuit), aucune compilation.
 - **Données et connexion** : Firebase (Firestore + connexion Google), offre gratuite « Spark ».
-- **Mode démo** : tant que `js/config.js` ne contient pas de configuration Firebase, l'outil fonctionne avec des données d'exemple enregistrées dans le navigateur.
+- **Mode démo** : sans configuration Firebase dans `js/config.js`, ou en ajoutant `?demo` à l'adresse (ex. `https://nazimatgit.github.io/Projetis/?demo`), l'outil fonctionne avec des données d'exemple enregistrées dans le navigateur, sans toucher aux vraies données.
 
 ## Fonctionnement
 

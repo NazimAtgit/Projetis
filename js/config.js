@@ -4,15 +4,14 @@
 //    et mettez votre adresse e-mail dans adminEmails (voir README.md).
 export const CONFIG = {
   appName: "Atelier Projets ESST",
-  firebase: null,
-  // firebase: {
-  //   apiKey: "…",
-  //   authDomain: "votre-projet.firebaseapp.com",
-  //   projectId: "votre-projet",
-  //   storageBucket: "votre-projet.appspot.com",
-  //   messagingSenderId: "…",
-  //   appId: "…"
-  // },
+  firebase: {
+    apiKey: "AIzaSyCVqbP6FZdB39HxDigZ9igP7JwH4UQ7-Eg",
+    authDomain: "projetis-f23ec.firebaseapp.com",
+    projectId: "projetis-f23ec",
+    storageBucket: "projetis-f23ec.firebasestorage.app",
+    messagingSenderId: "706004932771",
+    appId: "1:706004932771:web:b9849177f230343fb70716"
+  },
   adminEmails: ["ouadahi.na@gmail.com"],
   githubOrg: "ESST-Projets-L-2026"
 };

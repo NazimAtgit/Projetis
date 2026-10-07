@@ -19,7 +19,8 @@ function safeSet(key, v) { try { localStorage.setItem(key, v); } catch { /* stoc
 function safeDel(key) { try { localStorage.removeItem(key); } catch { /* rien */ } }
 
 export const store = {
-  mode: CONFIG.firebase ? "firebase" : "demo",
+  // ?demo dans l'adresse force le mode démo (données d'exemple locales), même en ligne.
+  mode: CONFIG.firebase && !/[?&]demo\b/.test(location.search) ? "firebase" : "demo",
   data: { projects: [], users: [], tasks: [], events: [], settings: { ...DEFAULT_SETTINGS } },
   session: null, // { email, name, role }
   ready: false,
