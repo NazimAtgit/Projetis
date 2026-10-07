@@ -70,8 +70,26 @@ js/seed.js          5 projets d'exemple
 js/views.js         écrans
 js/gantt.js         diagramme de Gantt
 js/app.js           navigation et actions
+js/merge.js         import « ajouter / mettre à jour »
 firestore.rules     règles de sécurité Firestore
 ```
+
+## Ajouter des projets et des tâches depuis un fichier
+
+**Réglages → Choisir un fichier JSON** ajoute ou met à jour des projets, des étudiants et des tâches sans rien supprimer ni toucher à l'avancement des étudiants. Un résumé (avec les points à vérifier) s'affiche avant de confirmer. Format, toutes les listes étant facultatives :
+
+```json
+{
+  "projects": [{ "code": "P6", "name": "Station météo LoRa", "startDate": "2026-10-12", "weeks": 8,
+                 "milestones": [{ "name": "MVP fonctionnel", "week": 6 }] }],
+  "users":    [{ "email": "prenom.nom@gmail.com", "name": "Prénom Nom", "project": "P6" }],
+  "tasks":    [{ "id": "p6-lora", "project": "P6", "title": "Liaison LoRa point à point", "size": "L",
+                 "label": "Firmware", "weekStart": 2, "weekEnd": 3, "milestone": "MVP fonctionnel",
+                 "dependsOn": ["p6-cdc"] }]
+}
+```
+
+Un projet est reconnu par son code, un étudiant par son e-mail, une tâche par son `id` ou par son titre dans le projet. Tailles : S, M, L. Étiquettes : Matériel, Firmware, Logiciel, Mécanique, Tests, Rapport.
 
 ## Sauvegarde
 

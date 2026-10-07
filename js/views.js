@@ -296,10 +296,14 @@ export function settingsView() {
     <div class="small muted">Niveaux : ${LEVELS.map(l => `${esc(l.name)} (${l.min} pts)`).join(" · ")}</div>
     <div><button class="btn primary" type="submit">Enregistrer les réglages</button></div>
   </form>
+  <section class="card stack"><h2>Ajouter ou mettre à jour depuis un fichier</h2>
+    <p class="small muted">Importez un fichier JSON de projets, d'étudiants ou de tâches (par exemple préparé avec Claude). Les nouveaux éléments sont ajoutés, ceux qui existent déjà sont mis à jour. Rien n'est supprimé, et l'avancement des étudiants (état des tâches, preuves, points, tutoriel) n'est jamais modifié. Un résumé s'affiche avant de confirmer.</p>
+    <div class="actions"><label class="btn primary" for="merge-file">Choisir un fichier JSON</label><input id="merge-file" type="file" accept="application/json,.json" hidden data-action="merge-import"></div>
+  </section>
   <section class="card stack"><h2>Sauvegarde</h2>
     <p class="small muted">Exportez toutes les données en JSON (projets, étudiants, tâches, historique) avant la soutenance ou pour les archiver. L'import remplace toutes les données actuelles.</p>
     <div class="actions"><button class="btn" data-action="export">Exporter en JSON</button>
-      <label class="btn" for="import-file">Importer un JSON</label><input id="import-file" type="file" accept="application/json" hidden data-action="import">
+      <label class="btn" for="import-file">Restaurer une sauvegarde (remplace tout)</label><input id="import-file" type="file" accept="application/json" hidden data-action="import">
       ${store.mode === "demo" ? `<button class="btn danger" data-action="reset-demo">Réinitialiser la démo</button>` : `<button class="btn" data-action="seed-example">Charger les 5 projets d'exemple</button>`}</div>
     <textarea id="export-out" class="mono" readonly hidden style="width:100%;min-height:160px;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface-2)"></textarea>
   </section>`;

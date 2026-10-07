@@ -8,6 +8,7 @@ import {
 import { TUTORIAL_STEPS, TUTORIAL_QUIZ, isCommitUrl } from "./tutorial.js";
 import { esc, modal, confirmBox, toast } from "./ui.js";
 import * as V from "./views.js";
+import { planMerge, describeSummary } from "./merge.js";
 
 const app = document.getElementById("app");
 let lastBadges = null, lastUser = null, deferred = false;
@@ -103,6 +104,30 @@ document.addEventListener("change", async e => {
     if (el.type === "radio") tuto.quiz = { ...(tuto.quiz || {}), [el.name]: Number(el.value) };
     else tuto.proof = el.value.trim();
     await store.put("users", { ...me, tutorial: tuto });
+  }
+  if (el.dataset.action === "merge-import" && el.files?.[0]) {
+    const file = el.files[0];
+    el.value = "";
+    let plan;
+    try { plan = planMerge(JSON.parse(await file.text()), store.data); }
+    catch (err) { toast("Fichier illisible : " + err.message); return; }
+    const lines = describeSummary(plan.summary);
+    if (!plan.ops.length) { toast("Rien à importer dans ce fichier"); return; }
+    modal({
+      title: "Ajouter ou mettre à jour", submit: "Importer",
+      body: `<p class="small muted">${esc(file.name)}</p>
+        <ul>${lines.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
+        <p class="small">Rien ne sera supprimé ; l'avancement des étudiants est conservé.</p>
+        ${plan.warnings.length ? `<div class="feedback-text"><b>À vérifier (${plan.warnings.length}) :</b><ul>${plan.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul></div>` : ""}`,
+      onSubmit: async () => {
+        const ops = [...plan.ops, { type: "put", col: "events", obj: { id: uid("e"), at: nowIso(), actor: store.session.email, type: "import", projectId: "", text: `Import « ${file.name} » : ${lines.join(" · ")}` } }];
+        try {
+          for (let i = 0; i < ops.length; i += 400) await store.commit(ops.slice(i, i + 400));
+          toast("Import terminé : " + lines.join(" · "));
+        } catch (err) { toast("Import refusé : " + err.message); return false; }
+      }
+    });
+    return;
   }
   if (el.dataset.action === "import" && el.files?.[0]) {
     try {
