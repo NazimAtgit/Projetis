@@ -12,6 +12,6 @@ export const CONFIG = {
     messagingSenderId: "706004932771",
     appId: "1:706004932771:web:b9849177f230343fb70716"
   },
-  adminEmails: ["ouadahi.na@gmail.com"],
+  adminEmails: ["nazim.ouadahi@esst-sup.com"],
   githubOrg: "ESST-Projets-L-2026"
 };
