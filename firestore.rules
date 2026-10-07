@@ -7,7 +7,8 @@ service cloud.firestore {
   match /databases/{db}/documents {
 
     function email() { return request.auth.token.email.lower(); }
-    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    // Connexion Google uniquement : Google a déjà vérifié l'adresse (email_verified peut être faux pour une adresse non Gmail).
+    function signedIn() { return request.auth != null && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'google.com'); }
     function isAdmin() { return signedIn() && email() in ['nazim.ouadahi@esst-sup.com']; }
     function isSup() { return signedIn() && exists(/databases/$(db)/documents/supervisors/$(email())); }
     function isStudent() { return signedIn() && exists(/databases/$(db)/documents/users/$(email())); }
