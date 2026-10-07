@@ -3,7 +3,8 @@ export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;"
 
 const AV_COLORS = ["#2f7d5b", "#b4602c", "#5b5fb0", "#2a7a9a", "#9a3b5a", "#6b7a2a", "#8a5a2b", "#3f6f8f"];
 export function initials(name) {
-  return String(name || "?").split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
+  const words = String(name || "?").split(/\s+/).map(w => w.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean);
+  return (words.slice(0, 2).map(w => w[0].toUpperCase()).join("")) || "?";
 }
 export function avatar(name, cls = "") {
   let h = 0; for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) >>> 0;

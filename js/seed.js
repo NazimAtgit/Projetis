@@ -110,7 +110,7 @@ const STUDENTS = {
 const slug = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]+/g, ".");
 const PTS = { S: 10, M: 25, L: 50 };
 
-export function seedData() {
+export function seedData({ admin = "admin@exemple.dz", colleague = null } = {}) {
   const start = "2026-09-21";
   const startMs = Date.parse(start + "T00:00:00");
   const day = n => new Date(startMs + n * 864e5 + 10 * 36e5).toISOString();
@@ -188,5 +188,12 @@ export function seedData() {
   }
   events.push({ id: "e_tuto", at: day(2), actor: "yacine.benali@exemple.dz", type: "badge", projectId: "p_p1", text: "Yacine Benali a terminé le tutoriel GitHub : badge « Welcome to Git! »" });
   events.sort((a, b) => b.at.localeCompare(a.at));
-  return { projects, users, tasks, events, settings: {}, example: true };
+  // Encadrant de chaque projet : l'administrateur, sauf P5 confié au collègue de démonstration.
+  const ownerOf = pid => (colleague && pid === "p_p5" ? colleague : admin);
+  projects.forEach(p => { p.owner = ownerOf(p.id); });
+  users.forEach(u => { u.owner = ownerOf(u.projectId); });
+  tasks.forEach(t => { t.owner = ownerOf(t.projectId); });
+  events.forEach(e => { e.owner = ownerOf(e.projectId); });
+  const supervisors = colleague ? [{ id: colleague, email: colleague, name: "Collègue (démo)", createdAt: day(-3) }] : [];
+  return { projects, users, tasks, events, supervisors, settings: {}, example: true };
 }

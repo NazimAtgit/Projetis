@@ -25,7 +25,9 @@ const rid = p => p + "_" + Math.random().toString(36).slice(2, 9) + Date.now().t
 const slug = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
 const norm = s => String(s ?? "").trim().toLowerCase();
 
-export function planMerge(input, current, now = new Date().toISOString()) {
+// opts.defaultOwner : encadrant des nouveaux projets ; opts.allowOwner : le fichier peut choisir l'encadrant ("owner").
+export function planMerge(input, current, now = new Date().toISOString(), opts = {}) {
+  const defaultOwner = opts.defaultOwner || "";
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("le fichier doit contenir un objet JSON { projects, users, tasks }");
   const warnings = [];
   const summary = { projectsNew: 0, projectsUpd: 0, usersNew: 0, usersUpd: 0, tasksNew: 0, tasksUpd: 0 };
@@ -47,7 +49,8 @@ export function planMerge(input, current, now = new Date().toISOString()) {
       p = {
         id: src.id || rid("p"), code: src.code || "P" + (projects.length + 1), name: src.name,
         description: "", startDate: now.slice(0, 10), weeks: 8,
-        color: COLORS[projects.length % COLORS.length], repoUrl: "", milestones: [], createdAt: now
+        color: COLORS[projects.length % COLORS.length], repoUrl: "", milestones: [], createdAt: now,
+        owner: (opts.allowOwner && src.owner ? norm(src.owner) : defaultOwner)
       };
       projects.push(p);
     }
@@ -77,7 +80,8 @@ export function planMerge(input, current, now = new Date().toISOString()) {
       ? { ...existing }
       : { id: email, email, role: "student", tutorial: { steps: {} }, createdAt: now, name: email, projectId: "" };
     if (src.name) u.name = String(src.name).trim();
-    if (p) u.projectId = p.id;
+    if (p) { u.projectId = p.id; u.owner = p.owner; }
+    if (!u.owner) u.owner = defaultOwner;
     ops.push({ type: "put", col: "users", obj: u });
     existing ? summary.usersUpd++ : summary.usersNew++;
   });
@@ -96,7 +100,7 @@ export function planMerge(input, current, now = new Date().toISOString()) {
     if (isNew) {
       if (!src.title) { warnings.push(`${where} ignorée : il manque "title"`); return; }
       t = {
-        id: src.id || rid("t"), projectId: p.id, kind: "normal", title: "", description: "",
+        id: src.id || rid("t"), projectId: p.id, owner: p.owner, kind: "normal", title: "", description: "",
         size: "M", label: "Logiciel", weekStart: 1, weekEnd: 1, milestone: "", dependsOn: [],
         assignee: null, status: "backlog", order: tasks.filter(x => x.projectId === p.id).length, createdAt: now
       };

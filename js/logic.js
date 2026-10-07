@@ -147,7 +147,7 @@ export function currentTasks(email) {
 }
 
 function event(type, text, projectId, extra = {}) {
-  return { type: "put", col: "events", obj: { id: uid("e"), at: nowIso(), actor: store.session?.email || "", type, text, projectId: projectId || "", ...extra } };
+  return { type: "put", col: "events", obj: { id: uid("e"), at: nowIso(), actor: store.session?.email || "", type, text, projectId: projectId || "", owner: store.ownerFor(projectId), ...extra } };
 }
 
 // --- Actions étudiant ---
@@ -193,7 +193,7 @@ export async function reportProblem(taskId, text) {
   const p = projectOf(t.projectId);
   const wk = Math.max(1, Math.min(p?.weeks || 8, weekOf(p)));
   const diag = {
-    id: uid("t"), projectId: t.projectId, kind: "diagnostic", parentTaskId: t.id,
+    id: uid("t"), projectId: t.projectId, owner: t.owner, kind: "diagnostic", parentTaskId: t.id,
     title: `Analyser le problème : ${t.title}`,
     description: "1. Décrire précisément ce qui ne marche pas (ce que vous attendiez, ce que vous observez).\n2. Isoler : tester chaque élément séparément (montage minimal, code minimal).\n3. Noter les mesures, captures et messages d'erreur.\n4. Proposer au moins une piste de solution et la tester.\n5. Mettre le compte rendu dans le dépôt (docs/) et coller le lien comme preuve.",
     size: "S", label: t.label, weekStart: wk, weekEnd: wk, dependsOn: [], milestone: "",

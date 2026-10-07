@@ -10,8 +10,11 @@ Outil de suivi des projets L2/L3 : projets, tâches, Kanban, diagramme de Gantt,
 
 | Qui | Ce qu'il peut faire |
 | --- | --- |
-| Encadrant (adresse dans `adminEmails`) | Tout : projets, jalons, étudiants, tâches, validation, déblocage, réglages, export/import |
-| Étudiant (adresse ajoutée par l'encadrant) | Faire le tutoriel, voir son projet, terminer ses tâches avec une preuve, signaler un problème, voir le classement |
+| Administrateur (adresse dans `adminEmails` et dans `firestore.rules`) | Tout voir et tout gérer : encadrants, projets de tous, barème des points, restauration de sauvegarde |
+| Encadrant (ajouté par l'administrateur dans **Encadrants**) | Créer ses projets, inscrire ses étudiants, créer et valider les tâches, suivre ses groupes. Il ne voit que ses projets |
+| Étudiant (ajouté par son encadrant) | Faire le tutoriel, voir son projet, terminer ses tâches avec une preuve, signaler un problème, voir le classement des groupes de son encadrant |
+
+Chaque projet, étudiant, tâche et événement porte un champ `owner` (e-mail de son encadrant) ; ce sont les règles Firestore qui empêchent un encadrant de lire les données d'un autre. L'administrateur peut confier un projet à un encadrant (Modifier le projet → Encadrant du projet) : étudiants et tâches suivent.
 
 Règles automatiques :
 

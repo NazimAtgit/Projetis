@@ -29,13 +29,14 @@ export function shell(route, content) {
     return `<a href="${href}" class="${on}">${label}${extra}</a>`;
   };
   const nav = admin ? `
-      <div class="nav-label">Encadrant</div>
+      <div class="nav-label">${store.isRoot() ? "Administration" : "Encadrant"}</div>
       ${link("#/", "Tableau de bord")}
       ${link("#/validation", "À traiter", tv + pb ? `<span class="count">${tv + pb}</span>` : "")}
       ${link("#/planning", "Planning global")}
       ${link("#/projets", "Projets")}
       ${link("#/etudiants", "Étudiants")}
       ${link("#/classement", "Classement")}
+      ${store.isRoot() ? link("#/encadrants", "Encadrants") : ""}
       ${link("#/reglages", "Réglages")}
       <a href="${GUIDE_URL}" target="_blank" rel="noopener">Guide Git ↗</a>
       <div class="nav-label">Projets</div>
@@ -52,7 +53,7 @@ export function shell(route, content) {
       <div class="brand">${brandMark}<div><b>${esc(CONFIG.appName)}</b><span>Projets L2/L3 · 8 semaines</span></div></div>
       <nav class="nav" aria-label="Navigation">${nav}</nav>
       <div class="side-foot">
-        <div class="who">${avatar(s.name)}<div><b class="small">${esc(s.name)}</b><small>${admin ? "Encadrant" : esc(projectOf(me?.projectId)?.code || "")}</small></div></div>
+        <div class="who">${avatar(s.name)}<div><b class="small">${esc(s.name)}</b><small>${store.isRoot() ? "Administrateur" : admin ? "Encadrant" : esc(projectOf(me?.projectId)?.code || "")}</small></div></div>
         ${store.mode === "firebase" ? `<button class="btn small" data-action="logout">Se déconnecter</button>` : ""}
       </div>
     </aside>
@@ -61,9 +62,11 @@ export function shell(route, content) {
 }
 
 function demoBar() {
-  const opts = [`<option value="${esc(store.adminSession().email)}" ${store.isAdmin() ? "selected" : ""}>Encadrant</option>`]
-    .concat(store.data.projects.map(p => `<optgroup label="${esc(p.code + " · " + p.name)}">${membersOf(p.id).map(u =>
-      `<option value="${esc(u.id)}" ${store.session.email === u.id ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</optgroup>`)).join("");
+  const sel = v => store.session.email === v ? "selected" : "";
+  const opts = [`<option value="${esc(store.adminSession().email)}" ${store.isRoot() ? "selected" : ""}>Administrateur</option>`]
+    .concat(store.raw.supervisors.length ? [`<optgroup label="Encadrants">${store.raw.supervisors.map(x => `<option value="${esc(x.id)}" ${sel(x.id)}>${esc(x.name)}</option>`).join("")}</optgroup>`] : [])
+    .concat(store.raw.projects.map(p => `<optgroup label="${esc(p.code + " · " + p.name)}">${store.raw.users.filter(u => u.projectId === p.id).map(u =>
+      `<option value="${esc(u.id)}" ${sel(u.id)}>${esc(u.name)}</option>`).join("")}</optgroup>`)).join("");
   return `<div class="demo-bar"><b>Mode démo</b><span>Données d'exemple, enregistrées dans ce navigateur.</span>
     <label for="demo-as">Voir l'outil en tant que</label><select id="demo-as" data-action="demo-as">${opts}</select>
     <button class="btn small" data-action="reset-demo">Réinitialiser la démo</button></div>`;
@@ -109,7 +112,7 @@ export function adminDashboard() {
 function projectCard(p, h) {
   const mem = membersOf(p.id);
   return `<article class="card proj-card" style="--pc:${esc(p.color)}">
-    <div class="head"><div><div class="code">${esc(p.code)} · S${h.week}</div><h3><a class="title" href="#/projet/${esc(p.id)}">${esc(p.name)}</a></h3></div>${pill(h.state, STATE_LABEL[h.state])}</div>
+    <div class="head"><div><div class="code">${esc(p.code)} · S${h.week}${store.isRoot() ? ` · ${esc(store.supervisorName(p.owner))}` : ""}</div><h3><a class="title" href="#/projet/${esc(p.id)}">${esc(p.name)}</a></h3></div>${pill(h.state, STATE_LABEL[h.state])}</div>
     <div class="stack" style="gap:4px"><div class="row small"><span class="muted">Avancement (points validés)</span><span class="spacer"></span><b>${pct(h.progress)} %</b></div>
     <div class="bar"><i style="width:${pct(h.progress)}%;background:${esc(p.color)}"></i></div></div>
     <div class="facts"><span><b>${h.done}/${h.total}</b> faites</span><span><b>${h.toValidate.length}</b> à valider</span><span><b>${h.blocked.length}</b> bloquée${h.blocked.length > 1 ? "s" : ""}</span><span><b>${h.late.length}</b> en retard</span></div>
@@ -167,7 +170,7 @@ export function projectsView() {
   <div class="grid grid-3">${store.data.projects.map(p => {
     const h = projectHealth(p);
     return `<article class="card proj-card" style="--pc:${esc(p.color)}">
-      <div class="head"><div><div class="code">${esc(p.code)} · début ${esc(fmtDate(p.startDate + "T12:00:00"))} · ${p.weeks} semaines</div><h3><a class="title" href="#/projet/${esc(p.id)}">${esc(p.name)}</a></h3></div>${pill(h.state, STATE_LABEL[h.state])}</div>
+      <div class="head"><div><div class="code">${esc(p.code)} · début ${esc(fmtDate(p.startDate + "T12:00:00"))} · ${p.weeks} semaines${store.isRoot() ? ` · ${esc(store.supervisorName(p.owner))}` : ""}</div><h3><a class="title" href="#/projet/${esc(p.id)}">${esc(p.name)}</a></h3></div>${pill(h.state, STATE_LABEL[h.state])}</div>
       <p class="small muted">${esc(p.description || "")}</p>
       <div class="facts"><span><b>${h.total}</b> tâches</span><span><b>${membersOf(p.id).length}</b> étudiants</span><span><b>${(p.milestones || []).length}</b> jalons</span></div>
       <div class="actions"><a class="btn small" href="#/projet/${esc(p.id)}">Ouvrir</a><button class="btn small" data-action="edit-project" data-id="${esc(p.id)}">Modifier</button></div>
@@ -251,17 +254,18 @@ export function studentsView() {
   const us = store.data.users.slice().sort((a, b) => (a.projectId || "").localeCompare(b.projectId || "") || a.name.localeCompare(b.name));
   return `<div class="page-head"><div><h1>Étudiants</h1><p>${CONFIG.firebase ? "L'adresse e-mail doit être celle du compte Google de l'étudiant : c'est elle qui lui donne accès." : "En ligne, l'adresse e-mail doit être celle du compte Google de l'étudiant."}</p></div>
     <div class="actions"><button class="btn primary" data-action="new-user">Ajouter un étudiant</button></div></div>
-  <div class="table-wrap"><table><thead><tr><th>Étudiant</th><th>Projet</th><th>Tutoriel</th><th>Tâche en cours</th><th class="num">Points</th><th>Niveau</th><th>Badges</th><th></th></tr></thead><tbody>
+  <div class="table-wrap"><table><thead><tr><th>Étudiant</th><th>Projet</th>${store.isRoot() ? "<th>Encadrant</th>" : ""}<th>Tutoriel</th><th>Tâche en cours</th><th class="num">Points</th><th>Niveau</th><th>Badges</th><th></th></tr></thead><tbody>
   ${us.map(u => {
     const st = userStats(u.id);
     const cur = currentTasks(u.id)[0];
     return `<tr><td><div class="row" style="flex-wrap:nowrap">${avatar(u.name)}<div><b>${esc(u.name)}</b><div class="muted small">${esc(u.email)}</div></div></div></td>
       <td>${esc(projectOf(u.projectId)?.code || "—")}</td>
+      ${store.isRoot() ? `<td class="small">${esc(store.supervisorName(u.owner))}</td>` : ""}
       <td>${tutorialDone(u) ? pill("fait", "Terminé") : pill("a_valider", "À faire")}</td>
       <td class="small">${cur ? esc(cur.title) : `<span class="muted">—</span>`}</td>
       <td class="num">${st.points}</td><td class="small">${st.level.index} · ${esc(st.level.name)}</td><td class="num">${st.badges.length}</td>
       <td><button class="btn small" data-action="edit-user" data-id="${esc(u.id)}">Modifier</button></td></tr>`;
-  }).join("") || `<tr><td colspan="8" class="muted">Aucun étudiant.</td></tr>`}
+  }).join("") || `<tr><td colspan="9" class="muted">Aucun étudiant.</td></tr>`}
   </tbody></table></div>`;
 }
 
@@ -288,23 +292,24 @@ export function leaderboardView() {
 export function settingsView() {
   const s = store.data.settings;
   const num = (id, label, v, hint = "") => `<div class="field"><label for="${id}">${label}</label><input id="${id}" name="${id}" type="number" min="0" step="1" value="${v}">${hint ? `<span class="muted small">${hint}</span>` : ""}</div>`;
-  return `<div class="page-head"><div><h1>Réglages</h1><p>Barème des points, conversion en bonus de note, sauvegardes.</p></div></div>
-  <form class="card stack" data-form="settings"><h2>Points et récompenses</h2>
+  const root = store.isRoot();
+  return `<div class="page-head"><div><h1>Réglages</h1><p>${root ? "Barème des points, conversion en bonus de note, sauvegardes." : "Import de projets et sauvegarde de vos données. Le barème des points est fixé par l'administrateur."}</p></div></div>
+  ${root ? `<form class="card stack" data-form="settings"><h2>Points et récompenses</h2>
     <div class="form-grid">${num("pointsS", "Tâche S", s.pointsS)}${num("pointsM", "Tâche M", s.pointsM)}${num("pointsL", "Tâche L", s.pointsL)}${num("onTimeBonus", "Bonus « dans les temps »", s.onTimeBonus)}${num("tutorialPoints", "Tutoriel GitHub", s.tutorialPoints)}</div>
     <div class="form-grid">${num("bonusPerPoints", "Points pour +1 point de note", s.bonusPerPoints, "Bonus arrondi au demi-point.")}${num("bonusCap", "Bonus maximum (sur 20)", s.bonusCap)}</div>
     <label class="check"><input type="checkbox" name="leaderboardVisible" ${s.leaderboardVisible ? "checked" : ""}> Classement visible par les étudiants</label>
     <div class="small muted">Niveaux : ${LEVELS.map(l => `${esc(l.name)} (${l.min} pts)`).join(" · ")}</div>
     <div><button class="btn primary" type="submit">Enregistrer les réglages</button></div>
-  </form>
+  </form>` : `<section class="card stack"><h2>Barème</h2><p class="small">Tâche S = ${s.pointsS} pts · M = ${s.pointsM} · L = ${s.pointsL} · +${s.onTimeBonus} si rendue dans les temps · tutoriel GitHub = ${s.tutorialPoints} · +1 point de note par tranche de ${s.bonusPerPoints} pts (maximum +${s.bonusCap}).</p></section>`}
   <section class="card stack"><h2>Ajouter ou mettre à jour depuis un fichier</h2>
-    <p class="small muted">Importez un fichier JSON de projets, d'étudiants ou de tâches (par exemple préparé avec Claude). Les nouveaux éléments sont ajoutés, ceux qui existent déjà sont mis à jour. Rien n'est supprimé, et l'avancement des étudiants (état des tâches, preuves, points, tutoriel) n'est jamais modifié. Un résumé s'affiche avant de confirmer.</p>
+    <p class="small muted">Importez un fichier JSON de projets, d'étudiants ou de tâches (par exemple préparé avec Claude).${root ? "" : " Les projets importés vous sont rattachés."} Les nouveaux éléments sont ajoutés, ceux qui existent déjà sont mis à jour. Rien n'est supprimé, et l'avancement des étudiants (état des tâches, preuves, points, tutoriel) n'est jamais modifié. Un résumé s'affiche avant de confirmer.</p>
     <div class="actions"><label class="btn primary" for="merge-file">Choisir un fichier JSON</label><input id="merge-file" type="file" accept="application/json,.json" hidden data-action="merge-import"></div>
   </section>
   <section class="card stack"><h2>Sauvegarde</h2>
-    <p class="small muted">Exportez toutes les données en JSON (projets, étudiants, tâches, historique) avant la soutenance ou pour les archiver. L'import remplace toutes les données actuelles.</p>
+    <p class="small muted">${root ? "Exportez toutes les données en JSON (projets, encadrants, étudiants, tâches, historique) avant la soutenance ou pour les archiver. La restauration remplace toutes les données actuelles, pour tous les encadrants." : "Exportez vos projets, étudiants et tâches en JSON pour les archiver."}</p>
     <div class="actions"><button class="btn" data-action="export">Exporter en JSON</button>
-      <label class="btn" for="import-file">Restaurer une sauvegarde (remplace tout)</label><input id="import-file" type="file" accept="application/json" hidden data-action="import">
-      ${store.mode === "demo" ? `<button class="btn danger" data-action="reset-demo">Réinitialiser la démo</button>` : `<button class="btn" data-action="seed-example">Charger les 5 projets d'exemple</button>`}</div>
+      ${root ? `<label class="btn" for="import-file">Restaurer une sauvegarde (remplace tout)</label><input id="import-file" type="file" accept="application/json" hidden data-action="import">
+      ${store.mode === "demo" ? `<button class="btn danger" data-action="reset-demo">Réinitialiser la démo</button>` : `<button class="btn" data-action="seed-example">Charger les 5 projets d'exemple</button>`}` : ""}</div>
     <textarea id="export-out" class="mono" readonly hidden style="width:100%;min-height:160px;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface-2)"></textarea>
   </section>`;
 }
@@ -456,6 +461,7 @@ export function projectForm(p) {
     <div class="field"><label for="p-weeks">Durée (semaines)</label><input id="p-weeks" name="weeks" type="number" min="1" max="30" value="${p?.weeks || 8}"></div>
     <div class="field"><label for="p-color">Couleur</label><input id="p-color" name="color" type="color" value="${esc(p?.color || "#1d6a48")}" style="height:40px;padding:3px"></div>
   </div>
+  ${store.isRoot() ? `<div class="field"><label for="p-owner">Encadrant du projet</label><select id="p-owner" name="owner">${[{ id: store.adminSession().email, name: "Administrateur (moi)" }, ...store.raw.supervisors].map(x => `<option value="${esc(x.id)}" ${(p?.owner || store.session.email) === x.id ? "selected" : ""}>${esc(x.name)} · ${esc(x.id)}</option>`).join("")}</select>${p ? `<span class="muted small">Changer d'encadrant transfère aussi les étudiants et les tâches du projet.</span>` : ""}</div>` : ""}
   <div class="field"><label for="p-repo">Dépôt GitHub</label><input id="p-repo" name="repoUrl" placeholder="https://github.com/${esc(CONFIG.githubOrg)}/p1-bus-gps" value="${esc(p?.repoUrl || "")}"></div>
   <div class="field"><label>Jalons notés</label><div class="ms-list" id="ms-list">${ms.map(m => msRow(m)).join("")}</div>
     <div><button type="button" class="btn small" data-action="add-ms">Ajouter un jalon</button></div></div>`;
@@ -470,4 +476,28 @@ export function userForm(u) {
   <div class="field"><label for="u-email">Adresse e-mail (compte Google)</label><input id="u-email" name="email" type="email" required value="${esc(u?.email || "")}" ${u ? "readonly" : ""}>${u ? `<span class="muted small">L'adresse sert d'identifiant : pour la changer, supprimez puis recréez l'étudiant.</span>` : ""}</div>
   <div class="field"><label for="u-project">Projet</label><select id="u-project" name="projectId">${store.data.projects.map(p => `<option value="${esc(p.id)}" ${u?.projectId === p.id ? "selected" : ""}>${esc(p.code + " · " + p.name)}</option>`).join("")}</select></div>
   ${u ? `<label class="check"><input type="checkbox" name="resetTuto"> Remettre le tutoriel GitHub à zéro</label>` : ""}`;
+}
+
+// ---------- Encadrants (administrateur) ----------
+export function supervisorsView() {
+  const sups = store.raw.supervisors.slice().sort((a, b) => a.name.localeCompare(b.name));
+  const rows = [{ id: store.session.email, name: "Administrateur (vous)", self: true }, ...sups];
+  return `<div class="page-head"><div><h1>Encadrants</h1><p>Chaque encadrant se connecte avec son compte Google. Il crée ses projets, inscrit ses étudiants et ne voit que les siens. Vous voyez tout.</p></div>
+    <div class="actions"><button class="btn primary" data-action="new-supervisor">Ajouter un encadrant</button></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Encadrant</th><th class="num">Projets</th><th class="num">Étudiants</th><th class="num">À valider</th><th class="num">Problèmes</th><th></th></tr></thead><tbody>
+  ${rows.map(x => {
+    const ps = store.raw.projects.filter(p => p.owner === x.id);
+    const ts = store.raw.tasks.filter(t => t.owner === x.id);
+    return `<tr><td><div class="row" style="flex-wrap:nowrap">${avatar(x.name)}<div><b>${esc(x.name)}</b><div class="muted small">${esc(x.id)}</div></div></div></td>
+      <td class="num">${ps.length}</td><td class="num">${store.raw.users.filter(u => u.owner === x.id).length}</td>
+      <td class="num">${ts.filter(t => t.status === "a_valider").length}</td><td class="num">${ts.filter(t => t.status === "bloque").length}</td>
+      <td>${x.self ? "" : `<button class="btn small" data-action="edit-supervisor" data-id="${esc(x.id)}">Modifier</button>`}</td></tr>`;
+  }).join("")}
+  </tbody></table></div>
+  <p class="small muted">Pour confier un projet existant à un encadrant : ouvrez le projet, « Modifier le projet », puis choisissez l'encadrant.</p>`;
+}
+
+export function supervisorForm(x) {
+  return `<div class="field"><label for="s-name">Nom</label><input id="s-name" name="name" required value="${esc(x?.name || "")}"></div>
+  <div class="field"><label for="s-email">Adresse e-mail (compte Google)</label><input id="s-email" name="email" type="email" required value="${esc(x?.id || "")}" ${x ? "readonly" : ""}></div>`;
 }

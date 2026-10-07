@@ -1,51 +1,67 @@
 rules_version = '2';
 // Règles de sécurité Firestore pour Atelier Projets ESST.
-// Remplacez l'adresse ci-dessous par la vôtre (la même que adminEmails dans js/config.js).
+// Rôles : administrateur (adresse ci-dessous, voit tout), encadrants (collection supervisors,
+// ne voient que leurs projets), étudiants (collection users, voient les projets de leur encadrant).
+// Chaque projet, étudiant, tâche et événement porte un champ "owner" = e-mail de son encadrant.
 service cloud.firestore {
   match /databases/{db}/documents {
 
     function email() { return request.auth.token.email.lower(); }
     function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
     function isAdmin() { return signedIn() && email() in ['nazim.ouadahi@esst-sup.com']; }
-    function me() { return get(/databases/$(db)/documents/users/$(email())).data; }
+    function isSup() { return signedIn() && exists(/databases/$(db)/documents/supervisors/$(email())); }
     function isStudent() { return signedIn() && exists(/databases/$(db)/documents/users/$(email())); }
-    function member() { return isAdmin() || isStudent(); }
+    function me() { return get(/databases/$(db)/documents/users/$(email())).data; }
+    function canRead(o) { return isAdmin() || (isSup() && o == email()) || (isStudent() && o == me().owner); }
+    function manages(o) { return isAdmin() || (isSup() && o == email()); }
+    // getAfter : état après l'écriture, pour accepter un projet et ses tâches créés dans le même lot.
+    function projOwner(pid) { return getAfter(/databases/$(db)/documents/projects/$(pid)).data.owner; }
+    function sameOwner(d) { return isAdmin() || d.projectId == '' || projOwner(d.projectId) == d.owner; }
     function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
 
-    // Réglages : lus par tous les inscrits, modifiés par l'encadrant.
+    // Barème des points : lu par tous les inscrits, modifié par l'administrateur.
     match /settings/{id} {
-      allow read: if member();
+      allow read: if isAdmin() || isSup() || isStudent();
       allow write: if isAdmin();
     }
 
-    // Projets : lecture pour tous les inscrits, écriture encadrant.
+    // Encadrants : gérés par l'administrateur ; chacun lit sa propre fiche.
+    match /supervisors/{sid} {
+      allow read: if isAdmin() || (signedIn() && sid == email());
+      allow write: if isAdmin();
+    }
+
     match /projects/{id} {
-      allow read: if member();
-      allow write: if isAdmin();
+      allow read: if canRead(resource.data.owner);
+      allow create: if manages(request.resource.data.owner);
+      allow update: if manages(resource.data.owner) && manages(request.resource.data.owner);
+      allow delete: if manages(resource.data.owner);
     }
 
-    // Étudiants : un étudiant peut seulement faire avancer son propre tutoriel.
+    // Étudiants : l'encadrant gère les siens ; l'étudiant ne fait avancer que son tutoriel.
     match /users/{uid} {
-      allow read: if member();
-      allow create, delete: if isAdmin();
-      allow update: if isAdmin()
+      allow read: if canRead(resource.data.owner) || (signedIn() && uid == email());
+      allow create: if manages(request.resource.data.owner) && sameOwner(request.resource.data);
+      allow update: if (manages(resource.data.owner) && manages(request.resource.data.owner) && sameOwner(request.resource.data))
         || (isStudent() && uid == email() && changed().hasOnly(['tutorial']));
+      allow delete: if manages(resource.data.owner);
     }
 
     // Tâches : l'étudiant ne touche qu'à ses tâches (ou prend une tâche libre de son projet),
     // ne peut jamais les passer en « fait » ni s'attribuer des points.
     match /tasks/{id} {
-      allow read: if member();
-      allow delete: if isAdmin();
-      allow create: if isAdmin()
+      allow read: if canRead(resource.data.owner);
+      allow delete: if manages(resource.data.owner);
+      allow create: if (manages(request.resource.data.owner) && sameOwner(request.resource.data))
         || (isStudent()
             && request.resource.data.kind == 'diagnostic'
             && request.resource.data.assignee == email()
             && request.resource.data.status == 'en_cours'
             && request.resource.data.size == 'S'
             && request.resource.data.projectId == me().projectId
+            && request.resource.data.owner == me().owner
             && !('pointsAwarded' in request.resource.data));
-      allow update: if isAdmin()
+      allow update: if (manages(resource.data.owner) && manages(request.resource.data.owner) && sameOwner(request.resource.data))
         || (isStudent()
             && resource.data.projectId == me().projectId
             && (resource.data.assignee == email() || resource.data.assignee == null)
@@ -55,11 +71,12 @@ service cloud.firestore {
             && changed().hasOnly(['status', 'assignee', 'startedAt', 'submittedAt', 'proof', 'problem', 'feedback']));
     }
 
-    // Historique : chacun ajoute ses propres événements, personne ne les modifie.
+    // Historique : chacun ajoute ses propres événements dans le périmètre de son encadrant.
     match /events/{id} {
-      allow read: if member();
-      allow create: if member() && request.resource.data.actor == email();
-      allow update, delete: if isAdmin();
+      allow read: if canRead(resource.data.owner);
+      allow create: if request.resource.data.actor == email()
+        && (manages(request.resource.data.owner) || (isStudent() && request.resource.data.owner == me().owner));
+      allow update, delete: if manages(resource.data.owner);
     }
   }
 }

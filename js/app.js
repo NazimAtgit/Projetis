@@ -32,7 +32,8 @@ function render() {
     if (!p || (!admin && me?.projectId !== p.id)) html = `<div class="empty">Projet introuvable.</div>`;
     else html = V.projectView(p, tab);
   } else if (admin) {
-    html = ({ validation: V.validationView, projets: V.projectsView, planning: V.planningView, etudiants: V.studentsView,
+    if (page === "encadrants" && !store.isRoot()) location.hash = "#/";
+    html = ({ encadrants: V.supervisorsView, validation: V.validationView, projets: V.projectsView, planning: V.planningView, etudiants: V.studentsView,
       classement: V.leaderboardView, reglages: V.settingsView, tutoriel: V.tutorialView }[page] || V.adminDashboard)();
   } else {
     html = ({ tutoriel: V.tutorialView, classement: store.data.settings.leaderboardVisible ? V.leaderboardView : V.studentHome }[page] || V.studentHome)();
@@ -65,6 +66,8 @@ const actions = {
   "new-project": () => editProject(null),
   "edit-project": el => editProject(el.dataset.id),
   "new-user": () => editUser(null),
+  "new-supervisor": () => editSupervisor(null),
+  "edit-supervisor": el => editSupervisor(el.dataset.id),
   "edit-user": el => editUser(el.dataset.id),
   validate: async el => { const t = taskOf(el.dataset.id); await validateTask(el.dataset.id); toast(`Validée : +${taskOf(t.id).pointsAwarded} pts`, "reward"); },
   reject: el => rejectDialog(el.dataset.id),
@@ -73,7 +76,7 @@ const actions = {
   problem: el => problemDialog(el.dataset.id),
   "start-next": async () => { const ok = await startNext(store.session.email); toast(ok ? "Nouvelle tâche attribuée" : "Aucune tâche disponible"); },
   "reset-demo": async () => { if (await confirmBox("Réinitialiser la démo", "Toutes les modifications faites dans ce navigateur seront effacées et les données d'exemple rechargées.", "Réinitialiser")) { store.resetDemo(); location.hash = "#/"; toast("Démo réinitialisée"); } },
-  "seed-example": async () => { if (await confirmBox("Charger les données d'exemple", "Les 5 projets d'exemple et leurs étudiants fictifs remplaceront toutes les données actuelles.", "Remplacer")) { await store.seedExample(); toast("Données d'exemple chargées"); } },
+  "seed-example": async () => { if (await confirmBox("Charger les données d'exemple", "Les 5 projets d'exemple et leurs étudiants fictifs remplaceront toutes les données actuelles, y compris les encadrants inscrits.", "Remplacer")) { await store.seedExample(); toast("Données d'exemple chargées"); } },
   export: () => exportJson(),
   login: () => store.login().catch(e => toast("Connexion impossible : " + e.message)),
   logout: () => store.logout(),
@@ -109,7 +112,7 @@ document.addEventListener("change", async e => {
     const file = el.files[0];
     el.value = "";
     let plan;
-    try { plan = planMerge(JSON.parse(await file.text()), store.data); }
+    try { plan = planMerge(JSON.parse(await file.text()), store.data, undefined, { defaultOwner: store.session.email, allowOwner: store.isRoot() }); }
     catch (err) { toast("Fichier illisible : " + err.message); return; }
     const lines = describeSummary(plan.summary);
     if (!plan.ops.length) { toast("Rien à importer dans ce fichier"); return; }
@@ -120,7 +123,7 @@ document.addEventListener("change", async e => {
         <p class="small">Rien ne sera supprimé ; l'avancement des étudiants est conservé.</p>
         ${plan.warnings.length ? `<div class="feedback-text"><b>À vérifier (${plan.warnings.length}) :</b><ul>${plan.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul></div>` : ""}`,
       onSubmit: async () => {
-        const ops = [...plan.ops, { type: "put", col: "events", obj: { id: uid("e"), at: nowIso(), actor: store.session.email, type: "import", projectId: "", text: `Import « ${file.name} » : ${lines.join(" · ")}` } }];
+        const ops = [...plan.ops, { type: "put", col: "events", obj: { id: uid("e"), at: nowIso(), actor: store.session.email, type: "import", projectId: "", owner: store.session.email, text: `Import « ${file.name} » : ${lines.join(" · ")}` } }];
         try {
           for (let i = 0; i < ops.length; i += 400) await store.commit(ops.slice(i, i + 400));
           toast("Import terminé : " + lines.join(" · "));
@@ -197,7 +200,7 @@ function editTask(t, projectId) {
       const obj = {
         ...(t || { id: uid("t"), kind: "normal", createdAt: nowIso(), order: Date.now() }),
         title: String(fd.get("title")).trim(), description: String(fd.get("description") || "").trim(),
-        projectId: fd.get("projectId"), size: fd.get("size"), label: fd.get("label"),
+        projectId: fd.get("projectId"), owner: store.ownerFor(fd.get("projectId")), size: fd.get("size"), label: fd.get("label"),
         weekStart: ws, weekEnd: we, milestone: fd.get("milestone") || "",
         assignee: fd.get("assignee") || null, status, dependsOn: fd.getAll("dependsOn")
       };
@@ -206,7 +209,7 @@ function editTask(t, projectId) {
       if (status === "en_cours" && !obj.assignee) { toast("Une tâche en cours doit être assignée"); return false; }
       await store.commit([
         { type: "put", col: "tasks", obj },
-        { type: "put", col: "events", obj: { id: uid("e"), at: nowIso(), actor: store.session.email, type: "edit", projectId: obj.projectId, text: `${t ? "Tâche modifiée" : "Nouvelle tâche"} : « ${obj.title} » (${STATUS_LABEL[status]})` } }
+        { type: "put", col: "events", obj: { id: uid("e"), at: nowIso(), actor: store.session.email, type: "edit", projectId: obj.projectId, owner: obj.owner, text: `${t ? "Tâche modifiée" : "Nouvelle tâche"} : « ${obj.title} » (${STATUS_LABEL[status]})` } }
       ]);
       toast(t ? "Tâche enregistrée" : "Tâche créée");
     },
@@ -239,9 +242,14 @@ function editProject(id) {
         ...(p || { id: uid("p"), createdAt: nowIso() }),
         code: String(fd.get("code")).trim(), name: String(fd.get("name")).trim(), description: String(fd.get("description") || "").trim(),
         startDate: fd.get("startDate"), weeks: Math.max(1, Number(fd.get("weeks")) || 8), color: fd.get("color"),
-        repoUrl: String(fd.get("repoUrl") || "").trim(), milestones
+        repoUrl: String(fd.get("repoUrl") || "").trim(), milestones,
+        owner: store.isRoot() ? (fd.get("owner") || store.session.email) : (p?.owner || store.session.email)
       };
-      await store.put("projects", obj);
+      const ops = [{ type: "put", col: "projects", obj }];
+      if (p && p.owner && p.owner !== obj.owner) // transfert : étudiants, tâches et historique suivent le projet
+        for (const col of ["users", "tasks", "events"])
+          store.raw[col].filter(x => x.projectId === p.id).forEach(x => ops.push({ type: "put", col, obj: { ...x, owner: obj.owner } }));
+      await store.commit(ops);
       toast(p ? "Projet enregistré" : "Projet créé");
       if (!p) location.hash = "#/projet/" + obj.id;
     },
@@ -268,7 +276,8 @@ function editUser(id) {
       const fd = new FormData(f);
       const email = String(fd.get("email")).trim().toLowerCase();
       if (!u && userOf(email)) { toast("Cet e-mail est déjà inscrit"); return false; }
-      const obj = { ...(u || { id: email, email, role: "student", tutorial: { steps: {} }, createdAt: nowIso() }), name: String(fd.get("name")).trim(), projectId: fd.get("projectId") };
+      const obj = { ...(u || { id: email, email, role: "student", tutorial: { steps: {} }, createdAt: nowIso() }), name: String(fd.get("name")).trim(), projectId: fd.get("projectId"), owner: store.ownerFor(fd.get("projectId")) };
+      if (!u && (store.raw.supervisors.some(x => x.id === email) || store.adminSession().email === email)) { toast("Cette adresse est celle d'un encadrant"); return false; }
       if (fd.get("resetTuto") === "on") obj.tutorial = { steps: {} };
       const ops = [{ type: "put", col: "users", obj }];
       if (u && u.projectId !== obj.projectId) // les tâches non terminées restent dans l'ancien projet, libérées
@@ -284,6 +293,30 @@ function editUser(id) {
         .forEach(t => ops.push({ type: "put", col: "tasks", obj: { ...t, assignee: null, status: "backlog" } }));
       await store.commit(ops);
       toast("Étudiant supprimé");
+    }
+  });
+}
+
+function editSupervisor(id) {
+  const x = id ? store.raw.supervisors.find(s => s.id === id) : null;
+  modal({
+    title: x ? "Modifier l'encadrant" : "Ajouter un encadrant", body: V.supervisorForm(x) + (x ? "" : `<p class="small muted">Il se connectera au site avec ce compte Google, créera ses projets et inscrira ses étudiants. Il ne verra que les siens.</p>`),
+    submit: x ? "Enregistrer" : "Ajouter", danger: x ? "Retirer cet encadrant" : "",
+    onSubmit: async f => {
+      const fd = new FormData(f);
+      const email = String(fd.get("email")).trim().toLowerCase();
+      if (!x && (store.raw.supervisors.some(s => s.id === email) || store.raw.users.some(u => u.id === email) || email === store.session.email)) { toast("Cette adresse est déjà inscrite"); return false; }
+      await store.put("supervisors", { ...(x || { id: email, email, createdAt: nowIso() }), name: String(fd.get("name")).trim() });
+      toast(x ? "Encadrant enregistré" : "Encadrant ajouté");
+    },
+    onDanger: async () => {
+      const n = store.raw.projects.filter(p => p.owner === x.id).length;
+      if (!(await confirmBox("Retirer l'encadrant", `${esc(x.name)} n'aura plus accès au site. Ses ${n} projet${n > 1 ? "s" : ""}, avec leurs étudiants et leurs tâches, vous seront rattachés.`, "Retirer"))) return false;
+      const ops = [{ type: "del", col: "supervisors", id: x.id }];
+      for (const col of ["projects", "users", "tasks", "events"])
+        store.raw[col].filter(o => o.owner === x.id).forEach(o => ops.push({ type: "put", col, obj: { ...o, owner: store.session.email } }));
+      await store.commit(ops);
+      toast("Encadrant retiré");
     }
   });
 }
@@ -329,8 +362,8 @@ function rejectDialog(id) {
 }
 
 function exportJson() {
-  const { projects, users, tasks, events, settings } = store.data;
-  const json = JSON.stringify({ exportedAt: nowIso(), projects, users, tasks, events, settings }, null, 2);
+  const { projects, users, tasks, events, settings, supervisors } = store.data;
+  const json = JSON.stringify({ exportedAt: nowIso(), projects, users, tasks, events, ...(store.isRoot() ? { supervisors } : {}), settings }, null, 2);
   try {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
