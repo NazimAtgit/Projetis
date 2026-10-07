@@ -13,6 +13,6 @@ export const CONFIG = {
   //   messagingSenderId: "…",
   //   appId: "…"
   // },
-  adminEmails: ["encadrant@exemple.dz"],
+  adminEmails: ["ouadahi.na@gmail.com"],
   githubOrg: "ESST-Projets-L-2026"
 };
