@@ -96,4 +96,4 @@ Un projet est reconnu par son code, un étudiant par son e-mail, une tâche par 
 
 ## Sauvegarde
 
-**Réglages → Exporter en JSON** télécharge toutes les données. Faites-le au moins avant la soutenance.
+**Réglages → Exporter en JSON** télécharge toutes les données. Faites-le au moins avant l'évaluation finale.

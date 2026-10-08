@@ -21,14 +21,14 @@ export const LEVELS = [
 ];
 
 export const BADGES = [
-  { id: "welcome-git", name: "Welcome to Git!", desc: "Tutoriel GitHub terminé : premier commit poussé.", glyph: "git" },
-  { id: "premier-pas", name: "Premier pas", desc: "Première tâche du projet validée.", glyph: "step" },
-  { id: "debloqueur", name: "Débloqueur", desc: "Un problème analysé et résolu.", glyph: "key" },
-  { id: "gros-morceau", name: "Gros morceau", desc: "Une tâche de taille L validée.", glyph: "weight" },
-  { id: "dans-les-temps", name: "Dans les temps", desc: "5 tâches rendues avant leur échéance.", glyph: "clock" },
-  { id: "regulier", name: "Régulier", desc: "Des tâches validées sur 3 semaines différentes.", glyph: "wave" },
-  { id: "jalon-tenu", name: "Jalon tenu", desc: "Toutes les tâches d'un jalon validées à temps (badge du binôme).", glyph: "flag" },
-  { id: "machine", name: "Machine", desc: "10 tâches validées.", glyph: "gear" }
+  { id: "welcome-git", color: "#2563C9", name: "Welcome to Git!", desc: "Tutoriel GitHub terminé : premier commit poussé.", glyph: "git" },
+  { id: "premier-pas", color: "#0E8A74", name: "Premier pas", desc: "Première tâche du projet validée.", glyph: "step" },
+  { id: "debloqueur", color: "#B4486F", name: "Débloqueur", desc: "Un problème analysé et résolu.", glyph: "key" },
+  { id: "gros-morceau", color: "#6B4FC8", name: "Gros morceau", desc: "Une tâche de taille L validée.", glyph: "weight" },
+  { id: "dans-les-temps", color: "#C27A12", name: "Dans les temps", desc: "5 tâches rendues avant leur échéance.", glyph: "clock" },
+  { id: "regulier", color: "#1F7FA8", name: "Régulier", desc: "Des tâches validées sur 3 semaines différentes.", glyph: "wave" },
+  { id: "jalon-tenu", color: "#0E2747", name: "Jalon tenu", desc: "Toutes les tâches d'un jalon validées à temps (badge du binôme).", glyph: "flag" },
+  { id: "machine", color: "#5B6B82", name: "Machine", desc: "10 tâches validées.", glyph: "gear" }
 ];
 
 const DAY = 864e5;

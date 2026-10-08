@@ -101,10 +101,11 @@ const GLYPHS = {
 };
 export function badgeSvg(badge, earned = true) {
   const g = GLYPHS[badge.glyph] || GLYPHS.step;
-  return `<svg viewBox="0 0 48 48" role="img" aria-label="${esc(badge.name)}${earned ? "" : " (à débloquer)"}">
-    <path d="M24 2.5l18.6 10.75v21.5L24 45.5 5.4 34.75v-21.5z" fill="var(--copper)"/>
-    <path d="M24 7l14.7 8.5v17L24 41 9.3 32.5v-17z" fill="var(--copper-soft)"/>
-    <g transform="translate(12 12)" fill="var(--copper)" stroke="var(--copper)" stroke-linecap="round" stroke-linejoin="round">${g}</g>
+  const c = earned ? (badge.color || "var(--accent)") : "var(--muted)";
+  return `<svg viewBox="0 0 48 48" role="img" aria-label="${esc(badge.name)}${earned ? "" : " (à débloquer)"}" style="--b:${c}">
+    <path d="M24 2.5l18.6 10.75v21.5L24 45.5 5.4 34.75v-21.5z" fill="var(--b)"/>
+    <path d="M24 7l14.7 8.5v17L24 41 9.3 32.5v-17z" fill="var(--surface)" fill-opacity=".92"/>
+    <g transform="translate(12 12)" fill="var(--b)" stroke="var(--b)" stroke-linecap="round" stroke-linejoin="round">${earned ? g : ""}</g>
   </svg>`;
 }
 

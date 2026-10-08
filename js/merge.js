@@ -19,7 +19,7 @@ const SIZES = ["S", "M", "L"];
 const LABELS = ["Matériel", "Firmware", "Logiciel", "Mécanique", "Tests", "Rapport"];
 const PROJECT_FIELDS = ["code", "name", "description", "startDate", "weeks", "color", "repoUrl"];
 const TASK_FIELDS = ["title", "description", "size", "label", "weekStart", "weekEnd", "milestone", "dependsOn", "order"];
-const COLORS = ["#2f7d5b", "#b4602c", "#5b5fb0", "#2a7a9a", "#9a3b5a", "#6b7a2a", "#8a5a2b", "#3f6f8f"];
+const COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#7c5cd6", "#c2477f"];
 
 const rid = p => p + "_" + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
 const slug = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);

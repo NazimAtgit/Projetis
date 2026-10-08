@@ -7,35 +7,35 @@
 <meta name="description" content="Guide Git et GitHub pour les projets L2/L3 de l'ESST : comprendre, enregistrer des versions, revenir en arrière, travailler en binôme.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
 </head>
 <body>
 <!--GUIDE-START-->
 <style>
 /* Guide Git — sommaire fixe à gauche, chapitres numérotés (vraie progression), mêmes couleurs que l'Atelier (vernis vert, cuivre). */
 :root {
-  --bg: #f2f4f0; --surface: #ffffff; --surface-2: #f7f9f6; --ink: #16201a; --muted: #5a685f; --line: #d9e1da;
-  --accent: #1d6a48; --accent-ink: #ffffff; --accent-soft: #e2efe7; --copper: #a8642f; --copper-soft: #f6e9dc;
+  --bg: #F3F5F9; --surface: #ffffff; --surface-2: #F7F9FC; --ink: #0F1B2D; --muted: #5E6B80; --line: #E2E7EF;
+  --accent: #2563C9; --accent-ink: #ffffff; --accent-soft: #E7EFFB; --copper: #0E2747; --copper-soft: #E7EFFB;
   --good: #2c8553; --warn: #b7800c; --crit: #bf3d36; --good-soft: #e3f2e8; --warn-soft: #fbf1d9; --crit-soft: #f9e3e1;
-  --code-bg: #111a15; --code-ink: #d6eadc; --code-dim: #8fa89a;
-  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --code-bg: #0B1A2E; --code-ink: #D5E3F5; --code-dim: #8597B0;
+  --font-display: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1411; --surface: #151d18; --surface-2: #1a231e; --ink: #e4ebe6; --muted: #93a39a; --line: #2a362f;
-    --accent: #4cae82; --accent-ink: #08130d; --accent-soft: #1b3327; --copper: #db9a62; --copper-soft: #3a2a1c;
+    --bg: #0D1522; --surface: #141E2E; --surface-2: #19253A; --ink: #E6ECF4; --muted: #96A3B8; --line: #26334A;
+    --accent: #5B93EC; --accent-ink: #08121F; --accent-soft: #1A2C48; --copper: #8DBBFF; --copper-soft: #1A2C48;
     --good: #5cc28a; --warn: #e0b04a; --crit: #ec7a72; --good-soft: #193226; --warn-soft: #362c14; --crit-soft: #3b1f1d;
-    --code-bg: #0a100c; --code-ink: #d6eadc; --code-dim: #7f978a;
+    --code-bg: #08121F; --code-ink: #D5E3F5; --code-dim: #7F91AA;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0e1411; --surface: #151d18; --surface-2: #1a231e; --ink: #e4ebe6; --muted: #93a39a; --line: #2a362f;
-  --accent: #4cae82; --accent-ink: #08130d; --accent-soft: #1b3327; --copper: #db9a62; --copper-soft: #3a2a1c;
+  --bg: #0D1522; --surface: #141E2E; --surface-2: #19253A; --ink: #E6ECF4; --muted: #96A3B8; --line: #26334A;
+  --accent: #5B93EC; --accent-ink: #08121F; --accent-soft: #1A2C48; --copper: #8DBBFF; --copper-soft: #1A2C48;
   --good: #5cc28a; --warn: #e0b04a; --crit: #ec7a72; --good-soft: #193226; --warn-soft: #362c14; --crit-soft: #3b1f1d;
-  --code-bg: #0a100c; --code-ink: #d6eadc; --code-dim: #7f978a;
+  --code-bg: #08121F; --code-ink: #D5E3F5; --code-dim: #7F91AA;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -136,7 +136,7 @@ footer { color: var(--muted); font-size: .86rem; border-top: 1px solid var(--lin
 
 <div class="layout">
 <nav class="toc" aria-label="Sommaire">
-  <a class="brand" href="#top"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="1" y="1" width="32" height="32" rx="8" fill="var(--accent)"/><circle cx="12" cy="10" r="2.6" fill="var(--accent-ink)"/><circle cx="12" cy="24" r="2.6" fill="var(--accent-ink)"/><circle cx="22" cy="14" r="2.6" fill="var(--copper)"/><path d="M12 12.6v8.8M22 16.6c0 4-4 4.4-8 6" stroke="var(--accent-ink)" stroke-width="2" fill="none" stroke-linecap="round"/></svg><div><b>Guide Git et GitHub</b><small>Projets L2/L3 · ESST</small></div></a>
+  <a class="brand" href="#top"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="1" y="1" width="32" height="32" rx="8" fill="#0E2747"/><circle cx="12" cy="10" r="2.6" fill="var(--accent-ink)"/><circle cx="12" cy="24" r="2.6" fill="var(--accent-ink)"/><circle cx="22" cy="14" r="2.6" fill="#8DBBFF"/><path d="M12 12.6v8.8M22 16.6c0 4-4 4.4-8 6" stroke="var(--accent-ink)" stroke-width="2" fill="none" stroke-linecap="round"/></svg><div><b>Guide Git et GitHub</b><small>Atelier Projets, ESST</small></div></a>
   <ol>
     <li><a href="#cest-quoi">Git et GitHub, c'est quoi ?</a></li>
     <li><a href="#pourquoi">À quoi ça sert</a></li>
@@ -240,7 +240,7 @@ git config --global user.email "votre.adresse@exemple.dz"
 git config --global init.defaultBranch main
 git --version            <span class="c"># vérifie l'installation</span></code></pre></div></li>
     </ol>
-    <div class="note"><b>Sans terminal ?</b>VS Code (onglet « Source Control ») et GitHub Desktop font les mêmes opérations avec des boutons. Apprenez quand même les commandes : elles fonctionnent partout et c'est ce qui sera demandé en soutenance.</div>
+    <div class="note"><b>Sans terminal ?</b>VS Code (onglet « Source Control ») et GitHub Desktop font les mêmes opérations avec des boutons. Apprenez quand même les commandes : elles fonctionnent partout et c'est ce qui vous sera demandé lors de l'évaluation.</div>
   </section>
 
   <section class="ch" id="demarrer">
@@ -350,7 +350,7 @@ git push</code></pre>
 
   <section class="ch" id="versions">
     <header><span class="num">10</span><h2>Marquer des versions</h2></header>
-    <p>Chaque commit est une version, mais certaines comptent plus que d'autres : celle présentée à la démo technique, le MVP, la version de soutenance. On leur pose un <b>tag</b>, une étiquette qui ne bouge plus.</p>
+    <p>Chaque commit est une version, mais certaines comptent plus que d'autres : celle présentée à la démo technique, le MVP, la version rendue pour l'évaluation finale. On leur pose un <b>tag</b>, une étiquette qui ne bouge plus.</p>
 <pre class="cmd"><code>git tag -a v0.4-demo -m "Démo technique de la semaine 4"
 git push origin v0.4-demo             <span class="c"># les tags ne partent pas avec un push normal</span>
 git tag                               <span class="c"># liste des versions</span>
@@ -501,7 +501,7 @@ secrets.h
       <ol><li>Posez le tag <code>v0.0-exercices</code> et poussez-le.</li><li>Sur GitHub, trouvez-le dans l'onglet Tags et créez une Release à partir de lui.</li></ol></div>
   </section>
 
-  <footer>Guide de l'Atelier Projets ESST · Projets L2/L3. Documentation complète et gratuite : <a href="https://git-scm.com/book/fr/v2" target="_blank" rel="noopener">le livre Pro Git en français</a>.</footer>
+  <footer>Guide de l'Atelier Projets de l'ESST. Documentation complète et gratuite : <a href="https://git-scm.com/book/fr/v2" target="_blank" rel="noopener">le livre Pro Git en français</a>.</footer>
 </main>
 </div>
 

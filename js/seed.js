@@ -3,13 +3,13 @@ const MS = [
   { id: "m1", name: "Cahier des charges", week: 1 },
   { id: "m2", name: "Démo technique", week: 4 },
   { id: "m3", name: "MVP fonctionnel", week: 6 },
-  { id: "m4", name: "Soutenance", week: 8 }
+  { id: "m4", name: "Évaluation finale", week: 8 }
 ];
 
 // [titre, taille, étiquette, semaine début, semaine fin, jalon, dépendances (index)]
 const PLANS = {
   P1: {
-    name: "Suivi GPS du bus de l'école", color: "#2f7d5b",
+    name: "Suivi GPS du bus de l'école", color: "#2a78d6",
     description: "Boîtier ESP32 + GPS + GSM embarqué, carte web en temps réel, distance et temps d'arrivée par arrêt.",
     tasks: [
       ["Rédiger le cahier des charges et la liste de matériel", "M", "Rapport", 1, 1, "m1"],
@@ -24,11 +24,11 @@ const PLANS = {
       ["Test réel en voiture sur le circuit complet", "M", "Tests", 6, 6, "m3", [4, 7]],
       ["Mode rejeu du trajet enregistré", "M", "Logiciel", 7, 7],
       ["Rédiger le rapport", "L", "Rapport", 7, 8, "m4"],
-      ["Préparer la démo de soutenance", "S", "Rapport", 8, 8, "m4"]
+      ["Préparer la démonstration finale", "S", "Rapport", 8, 8, "m4"]
     ]
   },
   P2: {
-    name: "Gants derbouka MIDI", color: "#b4602c",
+    name: "Gants derbouka MIDI", color: "#eb6834",
     description: "Gants à capteurs piézo envoyant des notes MIDI avec vélocité vers Ableton, LMMS ou tout logiciel MIDI.",
     tasks: [
       ["Rédiger le cahier des charges et la liste de matériel", "M", "Rapport", 1, 1, "m1"],
@@ -42,11 +42,11 @@ const PLANS = {
       ["Passage en BLE-MIDI", "M", "Firmware", 5, 6, "", [4]],
       ["Mesurer la latence et les faux déclenchements", "M", "Tests", 6, 6, "m3", [7, 8]],
       ["Rédiger le rapport", "L", "Rapport", 7, 8, "m4"],
-      ["Préparer la démo jouée", "S", "Rapport", 8, 8, "m4"]
+      ["Préparer la démonstration finale", "S", "Rapport", 8, 8, "m4"]
     ]
   },
   P3: {
-    name: "Jeu vidéo et nouvelle manette", color: "#5b5fb0",
+    name: "Jeu vidéo et nouvelle manette", color: "#1baf7a",
     description: "Un jeu court jouable uniquement avec une manette originale construite par le binôme.",
     tasks: [
       ["Fiche concept d'une page validée", "S", "Rapport", 1, 1, "m1"],
@@ -59,11 +59,11 @@ const PLANS = {
       ["Niveau complet et sons", "L", "Logiciel", 5, 6, "m3"],
       ["Test avec 5 joueurs extérieurs au groupe", "M", "Tests", 7, 7, "", [5, 7]],
       ["Rédiger le rapport", "L", "Rapport", 7, 8, "m4"],
-      ["Préparer la démo", "S", "Rapport", 8, 8, "m4"]
+      ["Préparer la démonstration finale", "S", "Rapport", 8, 8, "m4"]
     ]
   },
   P4: {
-    name: "Réservations cabinet dentaire", color: "#2a7a9a",
+    name: "Réservations cabinet dentaire", color: "#eda100",
     description: "Site web : les patients réservent des créneaux, le cabinet gère son agenda.",
     tasks: [
       ["Choix de la stack justifié et cahier des charges", "M", "Rapport", 1, 1, "m1"],
@@ -77,11 +77,11 @@ const PLANS = {
       ["Version mobile", "M", "Logiciel", 6, 6],
       ["Déploiement en ligne et jeu de données de test", "M", "Tests", 7, 7],
       ["Rédiger le rapport", "L", "Rapport", 7, 8, "m4"],
-      ["Préparer la démo", "S", "Rapport", 8, 8, "m4"]
+      ["Préparer la démonstration finale", "S", "Rapport", 8, 8, "m4"]
     ]
   },
   P5: {
-    name: "Machine de temps de réflexe", color: "#9a3b5a",
+    name: "Machine de temps de réflexe", color: "#e87ba4",
     description: "Cibles lumineuses activées au hasard, temps de réaction mesuré, appli mobile de suivi de progression.",
     tasks: [
       ["Rédiger le cahier des charges et la liste de matériel", "M", "Rapport", 1, 1, "m1"],
@@ -94,7 +94,7 @@ const PLANS = {
       ["Appli : historique et courbe de progression", "L", "Logiciel", 5, 6, "m3", [4]],
       ["Tests avec 5 personnes", "M", "Tests", 7, 7],
       ["Rédiger le rapport", "L", "Rapport", 7, 8, "m4"],
-      ["Préparer la démo", "S", "Rapport", 8, 8, "m4"]
+      ["Préparer la démonstration finale", "S", "Rapport", 8, 8, "m4"]
     ]
   }
 };

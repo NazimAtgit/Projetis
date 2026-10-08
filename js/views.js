@@ -6,7 +6,7 @@ import {
   projectOf, userOf, taskOf, tasksOf, membersOf, weekOf, weekEndDate, basePoints, onTime,
   userStats, projectHealth, tutorialDone, currentTasks, nextTaskFor, milestonesHeld
 } from "./logic.js";
-import { esc, avatar, fmtDate, ago, badgeSvg, brandMark } from "./ui.js";
+import { esc, avatar, fmtDate, ago, badgeSvg } from "./ui.js";
 import { gantt, ganttLegend } from "./gantt.js";
 import { TUTORIAL_STEPS, TUTORIAL_QUIZ, GUIDE_URL } from "./tutorial.js";
 
@@ -16,6 +16,29 @@ const sizeTag = s => `<span class="size ${s}" title="${esc(SIZES[s] || "")}">${e
 const pct = x => Math.round(x * 100);
 const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 
+// ---------- Icônes (traits 1.8 px, 20 × 20) ----------
+const ICONS = {
+  home: '<path d="M3 9.5 10 4l7 5.5V16a1 1 0 0 1-1 1h-3.5v-4.5h-5V17H4a1 1 0 0 1-1-1z"/>',
+  inbox: '<path d="M3 11h4l1.5 2h3L13 11h4"/><path d="M5 4h10l2 7v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5z"/>',
+  calendar: '<rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M3 8.5h14M7 3v3M13 3v3"/>',
+  folder: '<path d="M3 6a1 1 0 0 1 1-1h4l1.5 2H16a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>',
+  users: '<circle cx="7.5" cy="7.5" r="2.8"/><path d="M2.5 16c.6-2.6 2.6-4 5-4s4.4 1.4 5 4"/><circle cx="14" cy="8" r="2.2"/><path d="M13.5 12.1c1.9.2 3.3 1.5 3.8 3.4"/>',
+  trophy: '<path d="M6.5 3.5h7v4a3.5 3.5 0 0 1-7 0z"/><path d="M6.5 5H4v1.5A2.5 2.5 0 0 0 6.5 9M13.5 5H16v1.5A2.5 2.5 0 0 1 13.5 9M10 11v3M7 16.5h6"/>',
+  shield: '<path d="M10 3 16 5.5V10c0 3.5-2.6 6-6 7-3.4-1-6-3.5-6-7V5.5z"/><path d="m7.5 10 1.8 1.8 3.2-3.3"/>',
+  settings: '<circle cx="10" cy="10" r="2.5"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4"/>',
+  book: '<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H16v12H5.5A1.5 1.5 0 0 0 4 16.5z"/><path d="M4 16.5A1.5 1.5 0 0 0 5.5 18H16v-3"/>',
+  git: '<circle cx="6.5" cy="5" r="1.8"/><circle cx="6.5" cy="15" r="1.8"/><circle cx="13.5" cy="8" r="1.8"/><path d="M6.5 6.8v6.4M13.5 9.8c0 3-3.5 3.2-6.2 4"/>',
+  star: '<path d="m10 3 2.1 4.4 4.9.6-3.6 3.3.9 4.8L10 13.8 5.7 16.1l.9-4.8L3 8l4.9-.6z"/>',
+  logout: '<path d="M8 4H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3M12 6.5 15.5 10 12 13.5M15.5 10H8"/>'
+};
+const icon = name => `<svg class="ico" viewBox="0 0 20 20" aria-hidden="true">${ICONS[name] || ""}</svg>`;
+
+export function logoMark(cls = "") {
+  return CONFIG.logoUrl
+    ? `<img class="logo-img ${cls}" src="${esc(CONFIG.logoUrl)}" alt="ESST">`
+    : `<span class="logo-mark ${cls}" aria-label="ESST">ESST</span>`;
+}
+
 // ---------- Cadre ----------
 export function shell(route, content) {
   const admin = store.isAdmin();
@@ -23,38 +46,39 @@ export function shell(route, content) {
   const tv = store.data.tasks.filter(t => t.status === "a_valider").length;
   const pb = store.data.tasks.filter(t => t.status === "bloque").length;
   const me = userOf(s.email);
-  const link = (href, label, extra = "") => {
+  const link = (href, ic, label, extra = "") => {
     const cur = "#/" + route.join("/");
     const on = (cur === href || (href !== "#/" && cur.startsWith(href + "/"))) ? "on" : "";
-    return `<a href="${href}" class="${on}">${label}${extra}</a>`;
+    return `<a href="${href}" class="${on}" ${on ? 'aria-current="page"' : ""}>${ic ? icon(ic) : ""}<span>${label}</span>${extra}</a>`;
   };
+  const ext = `<a href="${GUIDE_URL}" target="_blank" rel="noopener">${icon("book")}<span>Guide Git</span></a>`;
   const nav = admin ? `
-      <div class="nav-label">${store.isRoot() ? "Administration" : "Encadrant"}</div>
-      ${link("#/", "Tableau de bord")}
-      ${link("#/validation", "À traiter", tv + pb ? `<span class="count">${tv + pb}</span>` : "")}
-      ${link("#/planning", "Planning global")}
-      ${link("#/projets", "Projets")}
-      ${link("#/etudiants", "Étudiants")}
-      ${link("#/classement", "Classement")}
-      ${store.isRoot() ? link("#/encadrants", "Encadrants") : ""}
-      ${link("#/reglages", "Réglages")}
-      <a href="${GUIDE_URL}" target="_blank" rel="noopener">Guide Git ↗</a>
-      <div class="nav-label">Projets</div>
-      ${store.data.projects.map(p => link(`#/projet/${p.id}`, `<span class="row" style="gap:8px"><i class="dot" style="background:${esc(p.color)}"></i>${esc(p.code)}</span>`)).join("")}`
+      ${link("#/", "home", "Tableau de bord")}
+      ${link("#/validation", "inbox", "À traiter", tv + pb ? `<span class="count">${tv + pb}</span>` : "")}
+      ${link("#/planning", "calendar", "Planning")}
+      ${link("#/projets", "folder", "Projets")}
+      ${link("#/etudiants", "users", "Étudiants")}
+      ${link("#/classement", "trophy", "Classement")}
+      ${store.isRoot() ? link("#/encadrants", "shield", "Encadrants") : ""}
+      ${link("#/reglages", "settings", "Réglages")}
+      ${ext}
+      ${store.data.projects.length ? `<div class="nav-label">Projets</div>` : ""}
+      ${store.data.projects.map(p => link(`#/projet/${p.id}`, "", `<i class="dot" style="background:${esc(p.color)}"></i>${esc(p.code)} <span class="nav-sub">${esc(p.name)}</span>`)).join("")}`
     : `
-      ${link("#/", "Mon espace")}
-      ${link("#/tutoriel", tutorialDone(me) ? "Tutoriel GitHub" : "Tutoriel GitHub", tutorialDone(me) ? "" : `<span class="count">1</span>`)}
-      <a href="${GUIDE_URL}" target="_blank" rel="noopener">Guide Git ↗</a>
-      ${me ? link(`#/projet/${me.projectId}`, "Mon projet") : ""}
-      ${store.data.settings.leaderboardVisible ? link("#/classement", "Classement") : ""}`;
+      ${link("#/", "home", "Mon espace")}
+      ${link("#/tutoriel", "git", "Tutoriel GitHub", tutorialDone(me) ? "" : `<span class="count">1</span>`)}
+      ${me ? link(`#/projet/${me.projectId}`, "folder", "Mon projet") : ""}
+      ${store.data.settings.leaderboardVisible ? link("#/classement", "trophy", "Classement") : ""}
+      ${ext}`;
   const demo = store.mode === "demo" ? demoBar() : "";
+  const role = store.isRoot() ? "Administrateur" : admin ? "Encadrant" : esc(projectOf(me?.projectId)?.name || "");
   return `${demo}<div class="shell">
     <aside class="side">
-      <div class="brand">${brandMark}<div><b>${esc(CONFIG.appName)}</b><span>Projets L2/L3 · 8 semaines</span></div></div>
+      <a class="brand" href="#/">${logoMark()}<div><b>${esc(CONFIG.appName)}</b><span>${esc(CONFIG.schoolName || "ESST")}</span></div></a>
       <nav class="nav" aria-label="Navigation">${nav}</nav>
       <div class="side-foot">
-        <div class="who">${avatar(s.name)}<div><b class="small">${esc(s.name)}</b><small>${store.isRoot() ? "Administrateur" : admin ? "Encadrant" : esc(projectOf(me?.projectId)?.code || "")}</small></div></div>
-        ${store.mode === "firebase" ? `<button class="btn small" data-action="logout">Se déconnecter</button>` : ""}
+        <div class="who">${avatar(s.name)}<div><b>${esc(s.name)}</b><small>${role}</small></div></div>
+        ${store.mode === "firebase" ? `<button class="icon-btn on-dark" data-action="logout" title="Se déconnecter" aria-label="Se déconnecter">${icon("logout")}</button>` : ""}
       </div>
     </aside>
     <main class="main" id="main">${content}</main>
@@ -65,67 +89,118 @@ function demoBar() {
   const sel = v => store.session.email === v ? "selected" : "";
   const opts = [`<option value="${esc(store.adminSession().email)}" ${store.isRoot() ? "selected" : ""}>Administrateur</option>`]
     .concat(store.raw.supervisors.length ? [`<optgroup label="Encadrants">${store.raw.supervisors.map(x => `<option value="${esc(x.id)}" ${sel(x.id)}>${esc(x.name)}</option>`).join("")}</optgroup>`] : [])
-    .concat(store.raw.projects.map(p => `<optgroup label="${esc(p.code + " · " + p.name)}">${store.raw.users.filter(u => u.projectId === p.id).map(u =>
+    .concat(store.raw.projects.map(p => `<optgroup label="${esc(p.code + " – " + p.name)}">${store.raw.users.filter(u => u.projectId === p.id).map(u =>
       `<option value="${esc(u.id)}" ${sel(u.id)}>${esc(u.name)}</option>`).join("")}</optgroup>`)).join("");
   return `<div class="demo-bar"><b>Mode démo</b><span>Données d'exemple, enregistrées dans ce navigateur.</span>
-    <label for="demo-as">Voir l'outil en tant que</label><select id="demo-as" data-action="demo-as">${opts}</select>
-    <button class="btn small" data-action="reset-demo">Réinitialiser la démo</button></div>`;
+    <label for="demo-as">Voir en tant que</label><select id="demo-as" data-action="demo-as">${opts}</select>
+    <button class="btn small" data-action="reset-demo">Réinitialiser</button></div>`;
+}
+
+const GOOGLE_G = `<svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>`;
+const TRACES = `<svg class="traces" viewBox="0 0 620 520" fill="none" aria-hidden="true"><g stroke="currentColor" stroke-width="2.5"><path d="M20 80h180l60 60h200M20 200h120l40-40h260l40 40h120M80 320h220l60 60h240M20 440h300l40-40h220"/><rect x="300" y="240" width="140" height="90" rx="10"/></g><g fill="currentColor"><circle cx="460" cy="140" r="8"/><circle cx="580" cy="200" r="8"/><circle cx="600" cy="380" r="8"/><circle cx="580" cy="400" r="8"/><circle cx="20" cy="80" r="6"/><circle cx="20" cy="200" r="6"/><circle cx="80" cy="320" r="6"/><circle cx="20" cy="440" r="6"/></g></svg>`;
+
+function authFrame(inner) {
+  const np = store.raw.projects.length, nt = store.raw.tasks.length;
+  return `<div class="auth">
+    <section class="auth-brand">
+      <div class="auth-logo">${logoMark("on-navy")}<div><b>${esc(CONFIG.schoolFullName || "École Supérieure des Sciences et Technologies")}</b><span>${esc(CONFIG.appName)}</span></div></div>
+      <h1>Vos projets, de la première idée à l'évaluation finale.</h1>
+      <p>Tâches planifiées, diagramme de Gantt, validation par l'encadrant et progression récompensée, pour chaque groupe.</p>
+      ${np ? `<dl class="auth-stats"><div><dt>${np}</dt><dd>projets en cours</dd></div><div><dt>${nt}</dt><dd>tâches planifiées</dd></div></dl>` : ""}
+      ${TRACES}
+    </section>
+    <section class="auth-panel"><div class="auth-card">${inner}</div></section>
+  </div>`;
 }
 
 export function loginView() {
-  return `<div class="login"><div class="card">${brandMark.replace('class="brand-mark"', 'class="brand-mark" style="width:56px;height:56px"')}
-    <h1>${esc(CONFIG.appName)}</h1>
-    <p class="muted">Connectez-vous avec le compte Google dont l'adresse a été donnée à votre encadrant.</p>
-    <button class="btn primary big" data-action="login">Se connecter avec Google</button></div></div>`;
+  return authFrame(`${logoMark("solid")}
+    <h2>Bienvenue</h2>
+    <p class="muted">Connectez-vous avec le compte Google que vous avez communiqué à votre encadrant.</p>
+    <button class="gbtn" data-action="login">${GOOGLE_G}Se connecter avec Google</button>
+    <ul class="roles"><li><b>Étudiant</b>vos tâches et vos badges</li><li><b>Encadrant</b>le suivi de vos groupes</li><li><b>Administrateur</b>la vue d'ensemble</li></ul>
+    <p class="small muted">Première connexion ? Lisez d'abord le <a href="${GUIDE_URL}" target="_blank" rel="noopener">guide Git et GitHub</a>.</p>`);
 }
 
 export function pendingView() {
-  return `<div class="login"><div class="card"><h1>Compte pas encore inscrit</h1>
-    <p>Vous êtes connecté avec <b>${esc(store.session.email)}</b>, mais cette adresse n'est inscrite dans aucun projet.</p>
-    <p class="muted">Envoyez cette adresse à votre encadrant pour qu'il vous ajoute, puis rechargez la page.</p>
-    <button class="btn" data-action="logout">Changer de compte</button></div></div>`;
+  return authFrame(`${logoMark("solid")}
+    <h2>Compte pas encore inscrit</h2>
+    <p>Vous êtes connecté avec <b>${esc(store.session.email)}</b>, mais cette adresse n'est rattachée à aucun projet.</p>
+    <p class="muted">Envoyez cette adresse à votre encadrant pour qu'il vous inscrive, puis rechargez la page.</p>
+    <button class="btn" data-action="logout">Changer de compte</button>`);
 }
 
 // ---------- Tableau de bord encadrant ----------
+function progressChart(health) {
+  if (!health.length) return "";
+  const rowH = 44, labelW = 210, barW = 400, W = labelW + barW + 120, H = health.length * rowH + 34;
+  const goal = 0.75;
+  const gx = labelW + goal * barW;
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Avancement de chaque projet en points validés">`;
+  s += `<line x1="${gx}" x2="${gx}" y1="4" y2="${H - 22}" class="goal"/><text x="${gx}" y="${H - 6}" text-anchor="middle" class="axis">objectif 75 %</text>`;
+  health.forEach(({ p, h }, i) => {
+    const y = 8 + i * rowH, v = Math.max(0, Math.min(1, h.progress));
+    const w = Math.max(v * barW, v > 0 ? 8 : 0);
+    s += `<a href="#/projet/${esc(p.id)}"><g class="bar-row"><title>${esc(p.name)} : ${pct(v)} % des points validés</title>
+      <text x="0" y="${y + 15}" class="lbl">${esc(p.code)} <tspan class="lbl-sub">${esc(p.name.length > 22 ? p.name.slice(0, 21) + "…" : p.name)}</tspan></text>
+      <rect x="${labelW}" y="${y + 2}" width="${barW}" height="18" rx="9" class="track"/>
+      ${w ? `<rect x="${labelW}" y="${y + 2}" width="${w}" height="18" rx="9" fill="${esc(p.color)}"/>` : ""}
+      <text x="${labelW + w + 8}" y="${y + 15}" class="val">${pct(v)} %</text>
+      ${h.state !== "ok" ? `<text x="${labelW + w + 52}" y="${y + 15}" class="flag ${h.state}">${esc(STATE_LABEL[h.state].toLowerCase())}</text>` : ""}
+    </g></a>`;
+  });
+  return s + `</svg>`;
+}
+
 export function adminDashboard() {
   const ps = store.data.projects;
   const now = new Date();
   const wk = ps[0] ? weekOf(ps[0]) : 1;
-  const tv = store.data.tasks.filter(t => t.status === "a_valider").length;
-  const pb = store.data.tasks.filter(t => t.status === "bloque").length;
+  const wks = ps[0]?.weeks || 8;
+  const tasks = store.data.tasks;
+  const tv = tasks.filter(t => t.status === "a_valider");
+  const pb = tasks.filter(t => t.status === "bloque");
   const health = ps.map(p => ({ p, h: projectHealth(p) }));
+  const avg = health.length ? health.reduce((a, x) => a + x.h.progress, 0) / health.length : 0;
   const late = health.filter(x => x.h.state !== "ok").length;
   const students = store.data.users;
   const tuto = students.filter(tutorialDone).length;
-  return `<div class="page-head"><div><h1>Semaine S${wk}</h1><p>${JOURS[now.getDay()]} ${fmtDate(now.toISOString())} · ${ps.length} projets, ${students.length} étudiants</p></div>
-    <div class="actions"><a class="btn" href="#/planning">Planning global</a><button class="btn primary" data-action="new-task">Nouvelle tâche</button></div></div>
+  const oldest = tv.slice().sort((a, b) => (a.submittedAt || "").localeCompare(b.submittedAt || ""))[0];
+  const first = store.session.name.split(" ").find(w => w && w !== w.toUpperCase()) || store.session.name.split(" ")[0];
+  const ring = v => `<svg class="ring" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="22" class="ring-track"/><circle cx="28" cy="28" r="22" class="ring-val" stroke-dasharray="${(v * 138.2).toFixed(1)} 138.2" transform="rotate(-90 28 28)"/></svg>`;
+  return `<div class="page-head"><div><h1>Bonjour ${esc(first)}</h1><p>Semaine ${wk} sur ${wks}, ${JOURS[now.getDay()]} ${fmtDate(now.toISOString())}</p></div>
+    <div class="actions"><a class="btn" href="#/planning">Planning</a><button class="btn primary" data-action="new-task">Nouvelle tâche</button></div></div>
   <div class="kpis">
-    <a class="kpi ${tv ? "warn" : ""}" href="#/validation"><b>${tv}</b><span>tâches à valider</span></a>
-    <a class="kpi ${pb ? "alert" : ""}" href="#/validation"><b>${pb}</b><span>problèmes ouverts</span></a>
-    <a class="kpi ${late ? "warn" : ""}" href="#/projets"><b>${late}</b><span>groupes en retard ou en alerte</span></a>
-    <a class="kpi" href="#/etudiants"><b>${tuto}/${students.length}</b><span>tutoriels GitHub terminés</span></a>
+    <a class="kpi" href="#/validation"><span class="k-lbl">À valider</span><b class="${tv.length ? "warn" : ""}">${tv.length}</b><span class="k-sub">${oldest ? `la plus ancienne ${esc(ago(oldest.submittedAt))}` : "rien en attente"}</span></a>
+    <a class="kpi" href="#/validation"><span class="k-lbl">Problèmes ouverts</span><b class="${pb.length ? "crit" : ""}">${pb.length}</b><span class="k-sub">${pb[0] ? esc(projectOf(pb[0].projectId)?.code + " : " + pb[0].title) : "aucun blocage"}</span></a>
+    <a class="kpi" href="#/projets"><span class="k-lbl">Avancement moyen</span><b>${pct(avg)} %</b><span class="k-sub">${late ? `${late} groupe${late > 1 ? "s" : ""} en retard` : "tous les groupes à l'heure"}</span>${ring(avg)}</a>
+    <a class="kpi" href="#/etudiants"><span class="k-lbl">Tutoriels GitHub</span><b>${tuto}<small>/${students.length}</small></b><span class="k-sub">${students.length - tuto ? `${students.length - tuto} à terminer` : "tous terminés"}</span></a>
   </div>
-  <div class="grid grid-3">${health.map(({ p, h }) => projectCard(p, h)).join("") || `<div class="empty">Aucun projet. <a href="#/projets">Créer un projet</a></div>`}</div>
-  <div class="card stack"><h2>Activité récente</h2>${feed(store.data.events.slice().sort((a, b) => b.at.localeCompare(a.at)).slice(0, 12))}</div>`;
+  <div class="dash-grid">
+    <section class="card"><div class="card-head"><h2>Avancement par projet</h2><span class="muted small">points validés sur le total prévu</span></div>
+      ${health.length ? progressChart(health) : `<div class="empty">Aucun projet. <a href="#/projets">Créer un projet</a></div>`}</section>
+    <section class="card"><div class="card-head"><h2>Activité récente</h2><a class="small" href="#/validation">À traiter</a></div>
+      ${feed(store.data.events.slice().sort((a, b) => b.at.localeCompare(a.at)).slice(0, 5))}</section>
+  </div>
+  <div class="grid grid-3">${health.map(({ p, h }) => projectCard(p, h)).join("")}</div>`;
 }
 
 function projectCard(p, h) {
   const mem = membersOf(p.id);
   return `<article class="card proj-card" style="--pc:${esc(p.color)}">
-    <div class="head"><div><div class="code">${esc(p.code)} · S${h.week}${store.isRoot() ? ` · ${esc(store.supervisorName(p.owner))}` : ""}</div><h3><a class="title" href="#/projet/${esc(p.id)}">${esc(p.name)}</a></h3></div>${pill(h.state, STATE_LABEL[h.state])}</div>
-    <div class="stack" style="gap:4px"><div class="row small"><span class="muted">Avancement (points validés)</span><span class="spacer"></span><b>${pct(h.progress)} %</b></div>
-    <div class="bar"><i style="width:${pct(h.progress)}%;background:${esc(p.color)}"></i></div></div>
-    <div class="facts"><span><b>${h.done}/${h.total}</b> faites</span><span><b>${h.toValidate.length}</b> à valider</span><span><b>${h.blocked.length}</b> bloquée${h.blocked.length > 1 ? "s" : ""}</span><span><b>${h.late.length}</b> en retard</span></div>
-    <div class="members">${mem.map(u => {
-      const cur = currentTasks(u.id)[0];
-      return `<div class="member">${avatar(u.name)}<div><b>${esc(u.name)}</b>${tutorialDone(u) ? "" : ` <span class="tag" style="color:var(--warn)">tutoriel à faire</span>`}<div class="muted small">${cur ? esc(cur.title) : "Aucune tâche en cours"}</div></div></div>`;
-    }).join("") || `<span class="muted small">Aucun étudiant</span>`}</div>
+    <div class="head"><span class="code">${esc(p.code)}, semaine ${h.week}${store.isRoot() ? `, ${esc(store.supervisorName(p.owner))}` : ""}</span>${pill(h.state, STATE_LABEL[h.state])}</div>
+    <h3><a class="title" href="#/projet/${esc(p.id)}">${esc(p.name)}</a></h3>
+    <div class="bar"><i style="width:${pct(h.progress)}%;background:${esc(p.color)}"></i></div>
+    <div class="row"><div class="avs">${mem.map(u => avatar(u.name)).join("")}</div><span class="spacer"></span>
+      <span class="muted small">${h.done}/${h.total} tâches${h.toValidate.length ? `, ${h.toValidate.length} à valider` : ""}${h.blocked.length ? `, ${h.blocked.length} bloquée${h.blocked.length > 1 ? "s" : ""}` : ""}</span></div>
+    ${mem.filter(u => !tutorialDone(u)).map(u => `<div class="small" style="color:var(--warn)">${esc(u.name)} n'a pas terminé le tutoriel GitHub</div>`).join("")}
   </article>`;
 }
 
+const EVENT_TONE = { problem: "crit", submit: "warn", validate: "good", badge: "info", assign: "info", reject: "warn", unblock: "good" };
 function feed(events) {
   if (!events.length) return `<div class="empty">Rien pour l'instant.</div>`;
-  return `<ul class="feed">${events.map(e => `<li><time>${esc(ago(e.at))}</time><span class="${e.alert ? "alert" : ""}">${esc(e.text)}</span></li>`).join("")}</ul>`;
+  return `<ul class="feed">${events.map(e => `<li><i class="dot ${EVENT_TONE[e.type] || ""}"></i><div><span class="${e.alert ? "alert" : ""}">${esc(e.text)}</span><time>${esc(ago(e.at))}</time></div></li>`).join("")}</ul>`;
 }
 
 // ---------- À traiter ----------
@@ -306,7 +381,7 @@ export function settingsView() {
     <div class="actions"><label class="btn primary" for="merge-file">Choisir un fichier JSON</label><input id="merge-file" type="file" accept="application/json,.json" hidden data-action="merge-import"></div>
   </section>
   <section class="card stack"><h2>Sauvegarde</h2>
-    <p class="small muted">${root ? "Exportez toutes les données en JSON (projets, encadrants, étudiants, tâches, historique) avant la soutenance ou pour les archiver. La restauration remplace toutes les données actuelles, pour tous les encadrants." : "Exportez vos projets, étudiants et tâches en JSON pour les archiver."}</p>
+    <p class="small muted">${root ? "Exportez toutes les données en JSON (projets, encadrants, étudiants, tâches, historique) avant l'évaluation finale ou pour les archiver. La restauration remplace toutes les données actuelles, pour tous les encadrants." : "Exportez vos projets, étudiants et tâches en JSON pour les archiver."}</p>
     <div class="actions"><button class="btn" data-action="export">Exporter en JSON</button>
       ${root ? `<label class="btn" for="import-file">Restaurer une sauvegarde (remplace tout)</label><input id="import-file" type="file" accept="application/json" hidden data-action="import">
       ${store.mode === "demo" ? `<button class="btn danger" data-action="reset-demo">Réinitialiser la démo</button>` : `<button class="btn" data-action="seed-example">Charger les 5 projets d'exemple</button>`}` : ""}</div>
@@ -324,45 +399,45 @@ export function studentHome() {
   const waiting = store.data.tasks.filter(t => t.assignee === me.id && t.status === "a_valider");
   const done = store.data.tasks.filter(t => t.assignee === me.id && t.status === "fait").sort((a, b) => (b.validatedAt || "").localeCompare(a.validatedAt || ""));
   const partner = membersOf(me.projectId).filter(u => u.id !== me.id);
+  const ringFor = (value, sub, frac) => `<div class="hero-ring"><svg viewBox="0 0 180 180" aria-hidden="true"><circle cx="90" cy="90" r="74" class="t"/><circle cx="90" cy="90" r="74" class="v" stroke-dasharray="${(Math.max(0, Math.min(1, frac)) * 465).toFixed(0)} 465" transform="rotate(-90 90 90)"/></svg><div><b>${value}</b><span>${sub}</span></div></div>`;
+  const xpRing = ringFor(st.points, st.level.next ? `points, ${st.level.next.min - st.points} avant ${esc(st.level.next.name)}` : "points, niveau maximum", st.level.progress);
   let hero;
   if (!tutorialDone(me)) {
     const n = Object.values(me.tutorial?.steps || {}).filter(Boolean).length;
-    hero = `<section class="hero-task"><div class="eyebrow">Première mission · obligatoire</div><h2>Le tutoriel GitHub</h2>
-      <p>Avant votre première tâche, apprenez à utiliser Git et GitHub : cloner le dépôt, faire un commit, travailler sur une branche. À la fin, vous débloquez le badge <b>Welcome to Git!</b> et +${store.data.settings.tutorialPoints} points, et votre première tâche vous est attribuée automatiquement.</p>
-      <div class="stack" style="gap:4px"><div class="small muted">${n}/${TUTORIAL_STEPS.length} étapes faites</div><div class="bar"><i style="width:${pct(n / TUTORIAL_STEPS.length)}%"></i></div></div>
-      <div><a class="btn primary big" href="#/tutoriel">${n ? "Reprendre le tutoriel" : "Commencer le tutoriel"}</a></div></section>`;
+    hero = `<section class="hero"><div class="hero-body"><p class="hero-kicker">Première mission, obligatoire</p><h2>Le tutoriel GitHub</h2>
+      <p>Avant votre première tâche, apprenez à utiliser Git et GitHub : cloner le dépôt, enregistrer une version, travailler sur une branche. À la fin, vous obtenez le badge <b>Welcome to Git!</b>, ${store.data.settings.tutorialPoints} points, et votre première tâche.</p>
+      <div class="hero-actions"><a class="btn light big" href="#/tutoriel">${n ? "Reprendre le tutoriel" : "Commencer le tutoriel"}</a></div></div>
+      ${ringFor(`${n}/${TUTORIAL_STEPS.length}`, "étapes faites", n / TUTORIAL_STEPS.length)}</section>`;
   } else if (cur.length) {
-    hero = cur.map(t => {
-      if (t.status === "bloque") return `<section class="hero-task"><div class="eyebrow" style="color:var(--crit)">En attente · problème signalé</div><h2>${esc(t.title)}</h2>
-        <div class="problem-text">${esc(t.problem?.text || "")}</div><p class="small muted">Commencez par la tâche de diagnostic. L'encadrant débloquera cette tâche quand le diagnostic sera validé.</p></section>`;
-      return `<section class="hero-task"><div class="eyebrow">${t.kind === "diagnostic" ? "Diagnostic en cours" : "Votre tâche en cours"}</div><h2>${esc(t.title)}</h2>
-        <div class="row small">${sizeTag(t.size)}<span class="tag">${esc(t.label || "")}</span><span class="muted">S${t.weekStart}–S${t.weekEnd} · à rendre avant le ${esc(fmtDate(weekEndDate(p, t.weekEnd).toISOString()))}</span><span class="spacer"></span><b style="color:var(--copper)">+${basePoints(t)} pts</b></div>
+    hero = cur.map((t, i) => {
+      if (t.status === "bloque") return `<section class="hero blocked"><div class="hero-body"><p class="hero-kicker">En attente : problème signalé</p><h2>${esc(t.title)}</h2>
+        <p class="problem-text">${esc(t.problem?.text || "")}</p><p>Commencez par la tâche de diagnostic. Votre encadrant débloquera cette tâche quand le diagnostic sera validé.</p></div></section>`;
+      return `<section class="hero"><div class="hero-body"><p class="hero-kicker">${t.kind === "diagnostic" ? "Diagnostic en cours" : "Votre tâche en cours"}</p><h2>${esc(t.title)}</h2>
+        <div class="hero-tags"><span>${esc(t.label || "")}</span><span>Taille ${esc(t.size)}</span><span>À rendre avant le ${esc(fmtDate(weekEndDate(p, t.weekEnd).toISOString()))}</span><span>+${basePoints(t)} points</span></div>
         ${t.description ? `<p class="desc">${esc(t.description)}</p>` : ""}
-        ${t.feedback ? `<div class="feedback-text"><b>Renvoyée par l'encadrant :</b> ${esc(t.feedback)}</div>` : ""}
-        <div class="actions"><button class="btn primary big" data-action="submit-task" data-id="${esc(t.id)}">J'ai terminé</button>${t.kind === "diagnostic" ? "" : `<button class="btn warn big" data-action="problem" data-id="${esc(t.id)}">J'ai un problème</button>`}</div></section>`;
+        ${t.feedback ? `<p class="feedback-text"><b>Renvoyée par l'encadrant :</b> ${esc(t.feedback)}</p>` : ""}
+        <div class="hero-actions"><button class="btn light big" data-action="submit-task" data-id="${esc(t.id)}">J'ai terminé</button>${t.kind === "diagnostic" ? "" : `<button class="btn outline-light big" data-action="problem" data-id="${esc(t.id)}">J'ai un problème</button>`}</div></div>
+        ${i === 0 ? xpRing : ""}</section>`;
     }).join("");
   } else {
     const next = nextTaskFor(me.id);
-    hero = `<section class="hero-task"><div class="eyebrow">Aucune tâche en cours</div><h2>${next ? "Prêt pour la suite ?" : "Plus de tâche disponible pour l'instant"}</h2>
-      <p>${next ? `La prochaine tâche libre de votre projet est « ${esc(next.title)} ».` : "Les tâches restantes attendent qu'une autre soit terminée, ou sont prises par votre binôme. Parlez-en à l'encadrant."}</p>
-      ${next ? `<div><button class="btn primary big" data-action="start-next">Prendre cette tâche</button></div>` : ""}</section>`;
+    hero = `<section class="hero"><div class="hero-body"><p class="hero-kicker">Aucune tâche en cours</p><h2>${next ? "Prêt pour la suite ?" : "Plus de tâche disponible pour l'instant"}</h2>
+      <p>${next ? `La prochaine tâche libre de votre projet est « ${esc(next.title)} ».` : "Les tâches restantes attendent qu'une autre soit terminée, ou sont prises par votre binôme. Parlez-en à votre encadrant."}</p>
+      ${next ? `<div class="hero-actions"><button class="btn light big" data-action="start-next">Prendre cette tâche</button></div>` : ""}</div>${xpRing}</section>`;
   }
-  return `<div class="page-head"><div><h1>Bonjour ${esc(me.name.split(" ")[0])}</h1><p>${esc(p?.name || "")} · semaine S${weekOf(p)}${partner.length ? " · avec " + partner.map(u => esc(u.name)).join(", ") : ""}</p></div></div>
+  return `<div class="page-head"><div><h1>Bonjour ${esc(me.name.split(" ")[0])}</h1><p>${esc(p?.name || "")}, semaine ${weekOf(p)}${partner.length ? `, avec ${partner.map(u => esc(u.name)).join(" et ")}` : ""}</p></div></div>
   ${hero}
-  <div class="grid grid-2">
-    <section class="card stack"><h2>Ma progression</h2>
-      <div class="xp"><div class="points">${st.points}<span class="small muted" style="font-size:.9rem"> pts</span></div>
-      <div class="lvl"><div class="row small"><b>Niveau ${st.level.index} · ${esc(st.level.name)}</b><span class="spacer"></span><span class="muted">${st.level.next ? `${st.level.next.min - st.points} pts avant ${esc(st.level.next.name)}` : "Niveau maximum"}</span></div><div class="bar copper"><i style="width:${pct(st.level.progress)}%"></i></div></div></div>
-      <div class="small">Bonus de note estimé : <b>+${st.bonus}</b> / ${store.data.settings.bonusCap}</div>
-    </section>
-    <section class="card stack"><h2>En attente de validation</h2>
-      ${waiting.length ? waiting.map(t => `<div class="row small"><span class="pill a_valider">À valider</span><span>${esc(t.title)}</span><span class="spacer"></span><span class="muted">+${basePoints(t)}</span></div>`).join("") : `<p class="muted small">Rien en attente.</p>`}
-      ${done.length ? `<h3 style="margin-top:6px">Validées</h3>${done.slice(0, 6).map(t => `<div class="row small"><span class="pill fait">Fait</span><span>${esc(t.title)}</span><span class="spacer"></span><b style="color:var(--copper)">+${t.pointsAwarded ?? basePoints(t)}</b></div>`).join("")}` : ""}
-    </section>
-  </div>
-  <section class="card stack"><h2>Mes badges <span class="muted">(${st.badges.length}/${BADGES.length})</span></h2>
-    <div class="badges">${BADGES.map(b => { const has = st.badges.includes(b.id); return `<div class="badge ${has ? "" : "locked"}">${badgeSvg(b, has)}<b>${esc(b.name)}</b><small>${esc(b.desc)}</small></div>`; }).join("")}</div>
-  </section>`;
+  <div class="dash-grid">
+    <section class="card"><div class="card-head"><h2>Mes badges</h2><span class="muted small">${st.badges.length} sur ${BADGES.length}</span></div>
+      <div class="badges">${BADGES.map(b => { const has = st.badges.includes(b.id); return `<div class="badge ${has ? "" : "locked"}" title="${esc(b.desc)}">${badgeSvg(b, has)}<b>${esc(b.name)}</b><small>${esc(b.desc)}</small></div>`; }).join("")}</div></section>
+    <section class="card stack"><div class="card-head"><h2>Ma progression</h2><span class="muted small">bonus estimé +${st.bonus} sur ${store.data.settings.bonusCap}</span></div>
+      <div><div class="row"><b>Niveau ${st.level.index}, ${esc(st.level.name)}</b><span class="spacer"></span><span class="muted small">${st.level.next ? `${st.level.next.min - st.points} points avant ${esc(st.level.next.name)}` : "niveau maximum"}</span></div><div class="bar thick"><i style="width:${pct(st.level.progress)}%"></i></div></div>
+      <div class="list">
+        ${waiting.map(t => `<div class="list-row"><span class="pill a_valider">À valider</span><span>${esc(t.title)}</span><span class="spacer"></span><span class="muted">+${basePoints(t)}</span></div>`).join("")}
+        ${done.slice(0, 5).map(t => `<div class="list-row"><span class="pill fait">Validée</span><span>${esc(t.title)}</span><span class="spacer"></span><b class="pts">+${t.pointsAwarded ?? basePoints(t)}</b></div>`).join("")}
+        ${!waiting.length && !done.length ? `<p class="muted small">Vos tâches rendues et validées apparaîtront ici.</p>` : ""}
+      </div></section>
+  </div>`;
 }
 
 export function tutorialView() {
@@ -448,7 +523,7 @@ export function taskReadOnly(t) {
 }
 
 export function projectForm(p) {
-  const ms = p?.milestones || [{ id: "m1", name: "Cahier des charges", week: 1 }, { id: "m2", name: "Démo technique", week: 4 }, { id: "m3", name: "MVP fonctionnel", week: 6 }, { id: "m4", name: "Soutenance", week: 8 }];
+  const ms = p?.milestones || [{ id: "m1", name: "Cahier des charges", week: 1 }, { id: "m2", name: "Démo technique", week: 4 }, { id: "m3", name: "MVP fonctionnel", week: 6 }, { id: "m4", name: "Évaluation finale", week: 8 }];
   const today = new Date().toISOString().slice(0, 10);
   return `
   <div class="form-grid">
@@ -459,7 +534,7 @@ export function projectForm(p) {
   <div class="form-grid">
     <div class="field"><label for="p-start">Début (lundi de S1)</label><input id="p-start" name="startDate" type="date" required value="${esc(p?.startDate || today)}"></div>
     <div class="field"><label for="p-weeks">Durée (semaines)</label><input id="p-weeks" name="weeks" type="number" min="1" max="30" value="${p?.weeks || 8}"></div>
-    <div class="field"><label for="p-color">Couleur</label><input id="p-color" name="color" type="color" value="${esc(p?.color || "#1d6a48")}" style="height:40px;padding:3px"></div>
+    <div class="field"><label for="p-color">Couleur</label><input id="p-color" name="color" type="color" value="${esc(p?.color || "#2a78d6")}" style="height:40px;padding:3px"></div>
   </div>
   ${store.isRoot() ? `<div class="field"><label for="p-owner">Encadrant du projet</label><select id="p-owner" name="owner">${[{ id: store.adminSession().email, name: "Administrateur (moi)" }, ...store.raw.supervisors].map(x => `<option value="${esc(x.id)}" ${(p?.owner || store.session.email) === x.id ? "selected" : ""}>${esc(x.name)} · ${esc(x.id)}</option>`).join("")}</select>${p ? `<span class="muted small">Changer d'encadrant transfère aussi les étudiants et les tâches du projet.</span>` : ""}</div>` : ""}
   <div class="field"><label for="p-repo">Dépôt GitHub</label><input id="p-repo" name="repoUrl" placeholder="https://github.com/${esc(CONFIG.githubOrg)}/p1-bus-gps" value="${esc(p?.repoUrl || "")}"></div>

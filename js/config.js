@@ -3,7 +3,11 @@
 // 2. Pour la mise en ligne, collez ici l'objet firebaseConfig de votre projet Firebase
 //    et mettez votre adresse e-mail dans adminEmails (voir README.md).
 export const CONFIG = {
-  appName: "Atelier Projets ESST",
+  appName: "Atelier Projets",
+  schoolName: "ESST Alger",
+  schoolFullName: "École Supérieure des Sciences et Technologies",
+  // Logo de l'école : déposez le fichier dans le dépôt (ex. img/logo-esst.png) et indiquez son chemin ici.
+  logoUrl: "",
   firebase: {
     apiKey: "AIzaSyCVqbP6FZdB39HxDigZ9igP7JwH4UQ7-Eg",
     authDomain: "projetis-f23ec.firebaseapp.com",
