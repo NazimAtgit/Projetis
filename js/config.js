@@ -6,8 +6,8 @@ export const CONFIG = {
   appName: "Atelier Projets",
   schoolName: "ESST Alger",
   schoolFullName: "École Supérieure des Sciences et Technologies",
-  // Logo de l'école : déposez le fichier dans le dépôt (ex. img/logo-esst.png) et indiquez son chemin ici.
-  logoUrl: "",
+  // Logo de l'école (fichier déposé dans le dépôt). Laisser "" pour le monogramme « ESST ».
+  logoUrl: "css/LOGO-ESST-2-300x300.jpg",
   firebase: {
     apiKey: "AIzaSyCVqbP6FZdB39HxDigZ9igP7JwH4UQ7-Eg",
     authDomain: "projetis-f23ec.firebaseapp.com",

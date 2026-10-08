@@ -2,9 +2,9 @@
    Structure bleu marine (menu, bandeau de tâche), papier gris-bleu froid, actions en bleu signal.
    Une seule famille (Plus Jakarta Sans), chiffres tabulaires ; le motif « pistes de circuit » est le seul ornement. */
 :root {
-  --navy: #0E2747;
-  --navy-2: #163A66;
-  --navy-3: #1F56A3;
+  --navy: #072B57;
+  --navy-2: #0B3A75;
+  --navy-3: #0F4E9C;
   --on-navy: #CBD6E6;
   --on-navy-accent: #8DBBFF;
   --bg: #F3F5F9;
@@ -13,14 +13,14 @@
   --ink: #0F1B2D;
   --muted: #5E6B80;
   --line: #E2E7EF;
-  --accent: #2563C9;
+  --accent: #0049A0;          /* bleu du logo ESST */
   --accent-ink: #FFFFFF;
-  --accent-soft: #E7EFFB;
+  --accent-soft: #E5EEF9;
   --copper: #B7791F;          /* récompenses : points, badges */
   --good: #0E8A74; --good-soft: #E1F4EF;
   --warn: #A9690F; --warn-soft: #FCF0DC;
   --crit: #C0392B; --crit-soft: #FBE7E5;
-  --info: #2563C9; --info-soft: #E7EFFB;
+  --info: #0049A0; --info-soft: #E5EEF9;
   --shadow: 0 1px 2px rgba(15, 27, 45, .05), 0 6px 20px rgba(15, 27, 45, .05);
   --font: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
@@ -65,8 +65,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .logo-mark { width: 42px; height: 42px; border-radius: 12px; background: #fff; color: var(--navy); display: inline-grid; place-items: center; font-weight: 800; font-size: 12px; letter-spacing: .04em; flex: none; }
 .logo-mark.solid { background: var(--navy); color: #fff; width: 52px; height: 52px; font-size: 14px; border-radius: 14px; }
 .logo-mark.on-navy { width: 52px; height: 52px; font-size: 14px; }
-.logo-img { height: 42px; width: auto; flex: none; }
-.logo-img.solid, .logo-img.on-navy { height: 56px; }
+/* Logo image : carré avec beaucoup de blanc, recadré sur le texte (zone utile ≈ 28 × 15). */
+.logo-tile { display: block; background: #fff; border-radius: 12px; padding: 6px 10px; flex: none; line-height: 0; }
+.logo-tile img { display: block; width: 100%; aspect-ratio: 28 / 15; object-fit: cover; object-position: 50% 50%; }
+.brand.has-logo { flex-direction: column; align-items: stretch; gap: 12px; }
+.brand.has-logo .logo-tile { width: 100%; }
+.logo-tile.on-navy { width: 240px; padding: 10px 16px; border-radius: 16px; }
+.logo-tile.solid { width: 200px; padding: 0; background: none; }
 
 /* --- Structure --- */
 .shell { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100%; align-items: start; }
@@ -100,7 +105,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .auth { min-height: 100vh; display: grid; grid-template-columns: 1.1fr 1fr; }
 .auth-brand { position: relative; overflow: hidden; color: #fff; padding: 56px 64px; display: flex; flex-direction: column; gap: 22px;
   background: radial-gradient(1100px 600px at 0% 0%, var(--navy-3) 0%, var(--navy) 55%, #071528 100%); }
-.auth-logo { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.auth-logo { display: flex; align-items: center; gap: 18px; position: relative; z-index: 1; flex-wrap: wrap; }
 .auth-logo b { display: block; font-size: 16px; }
 .auth-logo > div span { font-size: 13px; opacity: .7; display: block; }
 .auth-brand h1 { font-size: clamp(2.2rem, 3.6vw, 3.4rem); line-height: 1.06; letter-spacing: -.025em; margin-top: auto; max-width: 15ch; position: relative; z-index: 1; }
@@ -183,7 +188,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .kpi .ring { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; }
 .ring-track { fill: none; stroke: var(--surface-2); stroke-width: 7; }
 .ring-val { fill: none; stroke: var(--accent); stroke-width: 7; stroke-linecap: round; }
-.chart { width: 100%; height: auto; display: block; }
+.chart-wrap { overflow-x: auto; }
+.chart { width: 100%; min-width: 560px; height: auto; display: block; }
 .chart .track { fill: var(--surface-2); }
 .chart .lbl { fill: var(--ink); font-size: 14px; font-weight: 700; }
 .chart .lbl-sub { fill: var(--muted); font-weight: 500; }
@@ -360,6 +366,8 @@ pre.cmd { background: #0B1A2E; color: #D5E3F5; padding: 12px 14px; border-radius
   .side { position: sticky; top: 0; z-index: 20; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px 14px; gap: 8px; }
   .brand { padding: 0; }
   .brand > div { display: none; }
+  .brand.has-logo .logo-tile { width: 92px; padding: 3px 6px; border-radius: 8px; }
+  .logo-tile.on-navy { width: 180px; }
   .nav { flex-direction: row; overflow-x: auto; width: 100%; order: 3; }
   .nav a { white-space: nowrap; padding: 8px 10px; }
   .nav a.on { box-shadow: inset 0 -3px 0 var(--on-navy-accent); }

@@ -35,7 +35,7 @@ const icon = name => `<svg class="ico" viewBox="0 0 20 20" aria-hidden="true">${
 
 export function logoMark(cls = "") {
   return CONFIG.logoUrl
-    ? `<img class="logo-img ${cls}" src="${esc(CONFIG.logoUrl)}" alt="ESST">`
+    ? `<span class="logo-tile ${cls}"><img src="${esc(CONFIG.logoUrl)}" alt="ESST, École Supérieure des Sciences et Technologies"></span>`
     : `<span class="logo-mark ${cls}" aria-label="ESST">ESST</span>`;
 }
 
@@ -74,7 +74,7 @@ export function shell(route, content) {
   const role = store.isRoot() ? "Administrateur" : admin ? "Encadrant" : esc(projectOf(me?.projectId)?.name || "");
   return `${demo}<div class="shell">
     <aside class="side">
-      <a class="brand" href="#/">${logoMark()}<div><b>${esc(CONFIG.appName)}</b><span>${esc(CONFIG.schoolName || "ESST")}</span></div></a>
+      <a class="brand ${CONFIG.logoUrl ? "has-logo" : ""}" href="#/">${logoMark()}<div><b>${esc(CONFIG.appName)}</b><span>${esc(CONFIG.schoolName || "ESST")}</span></div></a>
       <nav class="nav" aria-label="Navigation">${nav}</nav>
       <div class="side-foot">
         <div class="who">${avatar(s.name)}<div><b>${esc(s.name)}</b><small>${role}</small></div></div>
@@ -103,7 +103,7 @@ function authFrame(inner) {
   const np = store.raw.projects.length, nt = store.raw.tasks.length;
   return `<div class="auth">
     <section class="auth-brand">
-      <div class="auth-logo">${logoMark("on-navy")}<div><b>${esc(CONFIG.schoolFullName || "École Supérieure des Sciences et Technologies")}</b><span>${esc(CONFIG.appName)}</span></div></div>
+      <div class="auth-logo">${logoMark("on-navy")}${CONFIG.logoUrl ? `<div><b>${esc(CONFIG.appName)}</b></div>` : `<div><b>${esc(CONFIG.schoolFullName || "École Supérieure des Sciences et Technologies")}</b><span>${esc(CONFIG.appName)}</span></div>`}</div>
       <h1>Vos projets, de la première idée à l'évaluation finale.</h1>
       <p>Tâches planifiées, diagramme de Gantt, validation par l'encadrant et progression récompensée, pour chaque groupe.</p>
       ${np ? `<dl class="auth-stats"><div><dt>${np}</dt><dd>projets en cours</dd></div><div><dt>${nt}</dt><dd>tâches planifiées</dd></div></dl>` : ""}
@@ -178,7 +178,7 @@ export function adminDashboard() {
   </div>
   <div class="dash-grid">
     <section class="card"><div class="card-head"><h2>Avancement par projet</h2><span class="muted small">points validés sur le total prévu</span></div>
-      ${health.length ? progressChart(health) : `<div class="empty">Aucun projet. <a href="#/projets">Créer un projet</a></div>`}</section>
+      ${health.length ? `<div class="chart-wrap">${progressChart(health)}</div>` : `<div class="empty">Aucun projet. <a href="#/projets">Créer un projet</a></div>`}</section>
     <section class="card"><div class="card-head"><h2>Activité récente</h2><a class="small" href="#/validation">À traiter</a></div>
       ${feed(store.data.events.slice().sort((a, b) => b.at.localeCompare(a.at)).slice(0, 5))}</section>
   </div>
