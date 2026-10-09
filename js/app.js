@@ -367,7 +367,7 @@ function exportJson() {
   try {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
-    a.download = `atelier-projets-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `projetis-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a); a.click(); a.remove();
   } catch { /* téléchargement bloqué */ }
   const out = document.getElementById("export-out");

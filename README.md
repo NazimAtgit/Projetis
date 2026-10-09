@@ -1,4 +1,4 @@
-# Atelier Projets ESST
+# Projetis · ESST
 
 Outil de suivi des projets L2/L3 : projets, tâches, Kanban, diagramme de Gantt, validation par l'encadrant, signalement de problèmes, points, niveaux et badges. Le tutoriel GitHub est la première mission obligatoire de chaque étudiant : il débloque le badge **Welcome to Git!** et la première tâche.
 
