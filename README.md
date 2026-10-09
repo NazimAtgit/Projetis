@@ -60,6 +60,31 @@ La configuration Firebase n'est pas un secret : ce sont les règles Firestore qu
 3. **Étudiants → Ajouter** : nom, adresse Gmail de l'étudiant, projet.
 4. Donnez l'adresse du site aux étudiants : ils se connectent avec Google et arrivent directement sur le tutoriel.
 
+## Travailler dans VS Code
+
+1. **Fichier → Ouvrir le dossier…** et choisissez `atelier-projets-esst`. Acceptez les extensions recommandées (Live Server surtout).
+2. Clic droit sur `index.html` → **Open with Live Server** (ou bouton « Go Live » en bas à droite). Le site s'ouvre sur `http://localhost:5500`.
+   - Sans Live Server : terminal → `python -m http.server 5500`.
+   - Ne double-cliquez pas sur `index.html` : les modules JavaScript ne fonctionnent pas en `file://`.
+3. **Mode démo** : `http://localhost:5500/?demo` — données fictives dans le navigateur, sans toucher à Firebase. Idéal pour tester une modification.
+4. **Mode réel** : `http://localhost:5500/` — vraie base Firestore et connexion Google (`localhost` est autorisé par défaut dans Firebase → Authentication → Settings → Authorized domains). Attention : vous modifiez les vraies données.
+5. Les fichiers se rechargent automatiquement à chaque enregistrement.
+
+### Publier sur GitHub Pages depuis VS Code
+
+Le dossier contient déjà l'historique Git. Une seule fois :
+
+```bash
+git remote add origin https://github.com/NazimAtgit/Projetis.git
+git fetch origin
+git branch -M main
+git push -u origin main --force   # remplace le contenu du dépôt par cette version
+```
+
+Ensuite, à chaque modification : onglet **Contrôle de code source** (Ctrl+Maj+G) → message → **Valider** → **Synchroniser**. GitHub Pages se met à jour en 1 à 2 minutes (Ctrl+F5 pour vider le cache).
+
+Si vous modifiez `firestore.rules`, copiez son contenu dans Firebase → Firestore → Règles → **Publier** (le fichier du dépôt n'est pas lu par Firebase).
+
 ## Fichiers
 
 ```

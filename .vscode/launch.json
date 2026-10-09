@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Chrome · mode démo (Live Server)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5500/?demo",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Chrome · Firebase (Live Server)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5500/",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "ritwickdey.LiveServer",
+    "esbenp.prettier-vscode",
+    "toba.vsfire",
+    "github.vscode-pull-request-github"
+  ]
+}
