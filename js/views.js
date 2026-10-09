@@ -106,7 +106,7 @@ function authFrame(inner) {
   return `<div class="auth">
     <section class="auth-brand">
       <div class="auth-logo">${logoMark("on-navy")}${CONFIG.logoUrl ? `<div><b>${esc(CONFIG.appName)}</b></div>` : `<div><b>${esc(CONFIG.schoolFullName || "École Supérieure des Sciences et Technologies")}</b><span>${esc(CONFIG.appName)}</span></div>`}</div>
-      <h1>Construisez. Livrez. <span class="hl">Progressez.</span></h1>
+      <h1>PROJETIS :  Construisez. Livrez. <span class="hl">Progressez.</span></h1>
       <p>Tâches planifiées, diagramme de Gantt, validation par l'encadrant et progression récompensée, pour chaque groupe.</p>
       ${np ? `<dl class="auth-stats"><div><dt>${np}</dt><dd>projets en cours</dd></div><div><dt>${nt}</dt><dd>tâches planifiées</dd></div></dl>` : ""}
       ${TRACES}
