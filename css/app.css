@@ -72,6 +72,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand.has-logo .logo-tile { width: 100%; }
 .logo-tile.on-navy { width: 240px; padding: 10px 16px; border-radius: 16px; }
 .logo-tile.solid { width: 200px; padding: 0; background: none; }
+/* Logo blanc transparent : posé directement sur le bleu marine, sans cadre. */
+.logo-tile.white, .brand.has-logo .logo-tile.white { padding: 0; background: none; border-radius: 0; }
 
 /* --- Structure --- */
 .shell { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100%; align-items: start; }

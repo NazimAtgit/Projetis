@@ -8,6 +8,8 @@ export const CONFIG = {
   schoolFullName: "École Supérieure des Sciences et Technologies",
   // Logo de l'école (fichier déposé dans le dépôt). Laisser "" pour le monogramme « ESST ».
   logoUrl: "css/logo-esst.png",
+  // Version blanche sur fond transparent, pour le bleu marine (menu, écran de connexion). Laisser "" pour garder logoUrl partout.
+  logoWhiteUrl: "css/logo-esst-blanc.png",
   firebase: {
     apiKey: "AIzaSyCVqbP6FZdB39HxDigZ9igP7JwH4UQ7-Eg",
     authDomain: "projetis-f23ec.firebaseapp.com",

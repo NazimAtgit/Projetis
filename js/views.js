@@ -34,8 +34,10 @@ const ICONS = {
 const icon = name => `<svg class="ico" viewBox="0 0 20 20" aria-hidden="true">${ICONS[name] || ""}</svg>`;
 
 export function logoMark(cls = "") {
+  // « solid » = sur fond clair : logo couleur ; sinon fond bleu marine : logo blanc s'il existe.
+  const white = cls !== "solid" && CONFIG.logoWhiteUrl;
   return CONFIG.logoUrl
-    ? `<span class="logo-tile ${cls}"><img src="${esc(CONFIG.logoUrl)}" alt="ESST, École Supérieure des Sciences et Technologies"></span>`
+    ? `<span class="logo-tile ${cls} ${white ? "white" : ""}"><img src="${esc(white || CONFIG.logoUrl)}" alt="ESST, École Supérieure des Sciences et Technologies"></span>`
     : `<span class="logo-mark ${cls}" aria-label="ESST">ESST</span>`;
 }
 
